@@ -63,6 +63,11 @@
 </div>
 
 <script>
+    function handleKeyPress(event) {
+    if (event.key === "Enter") {
+        loadData(); // Gọi hàm tìm kiếm của bạn
+    }
+}
     // Hàm xử lý khi người dùng nhấn phím trong ô nhập liệu
     function loadData() {
     const btn = document.querySelector(".btn-search"); // Lấy nút tìm kiếm
