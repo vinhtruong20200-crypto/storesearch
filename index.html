@@ -89,6 +89,7 @@
         // Hàm sinh mã định danh ngẫu nhiên (UUID)
 function generateDeviceId() {
     return 'DEV-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+    
 }
 
 // Lấy DeviceID cũ, nếu chưa có thì tạo mới và lưu lại
