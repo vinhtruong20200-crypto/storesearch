@@ -40,7 +40,7 @@
 <body>
 
 <div class="container">
-    <h2>📊 HỆ THỐNG KIỂM TRA TỒN KHO</h2>
+    <h2>📊 ST</h2>
     
     <div class="search-box">
         <input type="text" id="itemInput" placeholder="Nhập mã ItemNo..." onkeypress="handleKeyPress(event)">
@@ -87,7 +87,7 @@
     // --------------------------
 
    
-const url = "https://api.vinh-lab-2026.online/api/inventory?itemNo=${encodeURIComponent(itemNo)}`;
+const url = `https://api.vinh-lab-2026.online/api/inventory?itemNo=${encodeURIComponent(itemNo)}`;
     statusMsg.innerHTML = '<span class="loading">🔄 Đang truy vấn Database...</span>';
     tbody.innerHTML = ""; 
 
