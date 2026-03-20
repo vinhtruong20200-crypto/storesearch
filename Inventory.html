@@ -63,70 +63,92 @@
 </div>
 
 <script>
-    function handleKeyPress(event) {
+    // Kiểm tra ngay khi vừa vào trang: Nếu không có token, mời đi đăng nhập luôn
+window.onload = function() {
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+        alert("Bạn chưa đăng nhập! Vui lòng đăng nhập để sử dụng hệ thống.");
+        window.location.href = 'login.html'; // Chuyển hướng về trang login của An
+    }
+};
+
+function handleKeyPress(event) {
     if (event.key === "Enter") {
-        loadData(); // Gọi hàm tìm kiếm của bạn
+        loadData();
     }
 }
-    // Hàm xử lý khi người dùng nhấn phím trong ô nhập liệu
-    function loadData() {
-    const btn = document.querySelector(".btn-search"); // Lấy nút tìm kiếm
-    const itemNo = document.getElementById("itemInput").value.trim();
+
+function loadData() {
+    const token = localStorage.getItem('userToken');
+    const btn = document.querySelector(".btn-search");
+    const itemInput = document.getElementById("itemInput");
+    const itemNo = itemInput.value.trim();
     const statusMsg = document.getElementById("statusMessage");
     const tbody = document.querySelector("#inventoryTable tbody");
 
     if (!itemNo) {
         statusMsg.innerHTML = '<span style="color:orange;">⚠️ Vui lòng nhập mã hàng!</span>';
+        itemInput.focus();
         return;
     }
 
     // --- BẮT ĐẦU CHỐNG SPAM ---
-    btn.disabled = true; // Khóa nút ngay lập tức
+    btn.disabled = true;
     const originalText = btn.innerText;
-    btn.innerText = "⏳..."; // Đổi chữ để nhân viên biết hệ thống đang chạy
-    // --------------------------
-
-   
-const url = `https://api.vinh-lab-2026.online/api/inventory?itemNo=${encodeURIComponent(itemNo)}`;
+    btn.innerText = "⏳...";
+    
     statusMsg.innerHTML = '<span class="loading">🔄 Đang truy vấn Database...</span>';
     tbody.innerHTML = ""; 
 
-    fetch(url)
-        .then(res => {
-            if (!res.ok) throw new Error("Không kết nối được API");
-            return res.json();
-        })
-        .then(data => {
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">❌ Trống</td></tr>';
-                statusMsg.innerHTML = "Tìm thấy 0 kết quả.";
-            } else {
-                data.forEach(r => {
-                    let tr = `<tr>
-                                <td><strong>${r.itemNo}</strong></td>
-                                <td>${r.size}</td>
-                                <td>${r.qty}</td>
-                              </tr>`;
-                    tbody.innerHTML += tr;
-                });
-                statusMsg.innerHTML = `✅ Tìm thấy ${data.length} kết quả.`;
-            }
-        })
-        .catch(err => {
-            statusMsg.innerHTML = `<span style="color:red;">⚠️ ${err.message}</span>`;
-        })
-        .finally(() => {
-            // Đợi 1.5 giây sau khi có kết quả mới cho phép bấm lại (Tránh spam liên tục)
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerText = originalText;
-            }, 1500); 
-        });
-}
+    const url = `https://api.vinh-lab-2026.online/api/inventory?itemNo=${encodeURIComponent(itemNo)}`;
 
-    // Nếu muốn khi mới mở trang đã có dữ liệu mẫu thì giữ lại dòng này, 
-    // còn nếu muốn bảng trắng tinh thì xóa đi nhé.
-    // window.onload = loadData; 
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token // Gửi chìa khóa đi
+        }
+    })
+    .then(res => {
+        // XỬ LÝ LỖI BẢO MẬT (401)
+        if (res.status === 401) {
+            localStorage.removeItem('userToken'); // Xóa token cũ đã hết hạn
+            throw new Error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+        }
+        if (!res.ok) throw new Error("Lỗi hệ thống hoặc API không phản hồi.");
+        return res.json();
+    })
+    .then(data => {
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">❌ Không tìm thấy mã hàng này</td></tr>';
+            statusMsg.innerHTML = "Tìm thấy 0 kết quả.";
+        } else {
+            let html = "";
+            data.forEach(r => {
+                html += `<tr>
+                            <td><strong>${r.itemNo}</strong></td>
+                            <td>${r.size}</td>
+                            <td>${r.qty}</td>
+                          </tr>`;
+            });
+            tbody.innerHTML = html;
+            statusMsg.innerHTML = `✅ Tìm thấy ${data.length} kết quả.`;
+        }
+    })
+    .catch(err => {
+        statusMsg.innerHTML = `<span style="color:red;">⚠️ ${err.message}</span>`;
+        // Nếu lỗi do hết hạn thì tự động chuyển hướng sau 2 giây
+        if (err.message.includes("đăng nhập lại")) {
+            setTimeout(() => window.location.href = 'login.html', 2000);
+        }
+    })
+    .finally(() => {
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }, 1500); 
+    });
+}
 </script>
 
 </body>
