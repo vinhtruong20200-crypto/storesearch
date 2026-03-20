@@ -50,9 +50,10 @@
     <table id="inventoryTable">
         <thead>
             <tr>
-                <th>Mã Hàng (ItemNo)</th>
-                <th>Kích cỡ (Size)</th>
-                <th>Số lượng (Qty)</th>
+                <th> Store </th>
+                <th>ItemNo</th>
+                <th>Size</th>
+                <th>Qty</th>
             </tr>
         </thead>
         <tbody>
@@ -126,6 +127,7 @@ function loadData() {
             let html = "";
             data.forEach(r => {
                 html += `<tr>
+                            <td> ${r.Store} </td>
                             <td><strong>${r.itemNo}</strong></td>
                             <td>${r.size}</td>
                             <td>${r.qty}</td>
