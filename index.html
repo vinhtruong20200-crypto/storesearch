@@ -2,14 +2,79 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập hệ thống - Inventory</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
-        .login-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 350px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .error { color: red; font-size: 13px; text-align: center; }
-    </style>
+   <style>
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        height: 100vh; 
+        background: #f4f7f6; 
+        margin: 0; 
+        padding: 20px; /* Đảm bảo form không dính sát mép màn hình đt */
+        box-sizing: border-box;
+    }
+    
+    .login-card { 
+        background: white; 
+        padding: 30px 20px; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+        width: 100%; /* Chiếm hết chiều rộng được cho phép */
+        max-width: 400px; /* Khóa lại ở 400px khi xem trên máy tính */
+        box-sizing: border-box;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 25px;
+        font-size: 24px;
+    }
+
+    input { 
+        width: 100%; 
+        padding: 15px; /* Tăng padding để ô nhập to ra, dễ chạm bằng ngón tay */
+        margin: 10px 0 15px 0; 
+        border: 1px solid #ddd; 
+        border-radius: 5px; 
+        box-sizing: border-box; 
+        font-size: 16px; /* BÍ QUYẾT: Đặt 16px để iPhone/iPad không tự động zoom cận cảnh khi bấm vào ô nhập */
+    }
+
+    input:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0,123,255,0.2);
+    }
+
+    button { 
+        width: 100%; 
+        padding: 15px; /* Làm nút to ra */
+        background: #007bff; 
+        color: white; 
+        border: none; 
+        border-radius: 5px; 
+        cursor: pointer; 
+        font-size: 18px; /* Chữ to rõ ràng */
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    button:hover { background-color: #0056b3; }
+    button:active { background-color: #004085; }
+
+    .error { 
+        color: red; 
+        font-size: 14px; 
+        text-align: center; 
+        margin-bottom: 10px;
+        min-height: 20px; /* Giữ khoảng trống để form không bị giật khi hiện lỗi */
+    }
+</style>
 </head>
 <body>
     <div class="login-card">
