@@ -86,7 +86,12 @@ function loadData() {
     const itemNo = itemInput.value.trim();
     const statusMsg = document.getElementById("statusMessage");
     const tbody = document.querySelector("#inventoryTable tbody");
-
+if (itemNo.length < 3) {
+        alert("Vui lòng nhập ít nhất 3 ký tự để tìm kiếm!");
+        // Hoặc hiện thông báo nhẹ nhàng lên giao diện:
+        // msg.innerText = "Nhập ít nhất 3 ký tự nhé Vinh!";
+        return; // Dừng lại luôn, không chạy xuống đoạn gọi API bên dưới
+    }
     if (!itemNo) {
         statusMsg.innerHTML = '<span style="color:orange;">⚠️ Vui lòng nhập mã hàng!</span>';
         itemInput.focus();
