@@ -4,35 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Tồn kho - Inventory System</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 15px; background-color: #f4f7f6; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        h2 { color: #333; text-align: center; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+   <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; background-color: #f4f7f6; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2 { color: #333; text-align: center; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px;}
         
         /* Khu vực tìm kiếm */
-        .search-box { display: flex; gap: 8px; margin-bottom: 15px; }
-        #itemInput { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 16px; outline: none; transition: 0.3s; }
+        .search-box { display: flex; gap: 6px; margin-bottom: 10px; }
+        #itemInput { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; transition: 0.3s; width: 100%;}
         #itemInput:focus { border-color: #007bff; }
         
-        .btn-search { padding: 0 20px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-search { padding: 0 15px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;}
         .btn-search:disabled { background-color: #ccc; }
 
         /* Khu vực lọc Store */
-        .filter-box { background: #e9f2ff; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: none; /* Ẩn khi chưa có dữ liệu */ }
-        #storeFilter { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #b6d4fe; font-size: 15px; margin-top: 5px; }
+        .filter-box { background: #e9f2ff; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: none; }
+        #storeFilter { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #b6d4fe; font-size: 14px; margin-top: 5px; box-sizing: border-box;}
 
-        /* Bảng dữ liệu tối ưu mobile */
+        /* Bảng dữ liệu cơ bản cho máy tính */
         .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-        th { background-color: #007bff; color: white; padding: 12px 8px; font-size: 13px; text-transform: uppercase; position: sticky; top: 0; }
-        td { border-bottom: 1px solid #eee; padding: 12px 8px; font-size: 15px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; background: white; }
+        th { background-color: #007bff; color: white; padding: 10px 5px; font-size: 12px; text-transform: uppercase; }
+        td { border-bottom: 1px solid #eee; padding: 10px 5px; font-size: 14px; text-align: center; }
         tr:nth-child(even) { background-color: #fafafa; }
-        .qty-cell { font-weight: bold; color: #d32f2f; }
-        .item-cell { font-weight: 600; color: #333; }
+        
+        /* Đánh dấu cột quan trọng */
+        .qty-cell { font-weight: bold; color: #d32f2f; font-size: 16px !important; }
+        .item-cell { font-weight: 600; color: #333; word-break: break-all; } /* Tự xuống dòng nếu Item quá dài */
 
-        .status { margin-top: 15px; font-size: 14px; text-align: center; color: #666; }
+        .status { margin-top: 15px; font-size: 13px; text-align: center; color: #666; }
         .loading { color: #007bff; font-weight: bold; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* ====================================================== */
+        /* 🔥 VŨ KHÍ BÍ MẬT: XỬ LÝ CHO ĐIỆN THOẠI (Dưới 600px) 🔥 */
+        /* ====================================================== */
+        @media screen and (max-width: 600px) {
+            
+            /* 1. Ẩn tiêu đề bảng cũ đi */
+            table thead { display: none; }
+            
+            /* 2. Biến mỗi dòng <tr> thành một cái thẻ (Card) */
+            table tr { 
+                display: block; 
+                margin-bottom: 10px; 
+                border: 1px solid #eee; 
+                border-radius: 8px; 
+                padding: 10px; 
+                background: white;
+                position: relative; /* Để cột Qty nhảy vào góc */
+            }
+
+            /* 3. Sắp xếp lại các ô <td> bên trong thẻ */
+            table td { 
+                display: block; 
+                text-align: left; 
+                padding: 4px 0; 
+                border: none;
+                font-size: 14px;
+            }
+
+            /* 4. Thêm nhãn (Store:, ItemNo:) vào trước dữ liệu cho dễ phân biệt */
+            table td::before { 
+                font-weight: bold; 
+                color: #888; 
+                margin-right: 5px; 
+                display: inline-block;
+                width: 60px; /* Độ rộng nhãn */
+            }
+            
+            /* Vinh copy đúng tên cột vào đây nhé */
+            table td:nth-of-type(1)::before { content: "Store:"; }
+            table td:nth-of-type(2)::before { content: "Item:"; }
+            table td:nth-of-type(3)::before { content: "Size:"; }
+
+            /* 5. Cột số lượng: Phóng to và đưa về góc phải trên */
+            .qty-cell { 
+                position: absolute; 
+                right: 10px; 
+                top: 10px; 
+                font-size: 22px !important; 
+                color: #d32f2f; 
+                padding: 0 !important;
+            }
+            /* Ẩn cái chữ "Số lượng" thừa ở cột Qty trên mobile */
+            .qty-cell::before { content: ""; display: none !important; }
+
+        }
     </style>
 </head>
 <body>
