@@ -10,27 +10,49 @@
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
         h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         
-        /* --- 2. KHU VỰC TÌM KIẾM CƠ CHẾ "ENTER" --- */
-        .search-box { margin-bottom: 20px; } /* Tăng khoảng cách cho thoáng */
+        /* --- 2. KHU VỰC TÌM KIẾM TÍCH HỢP (INPUT + CAMERA + NÚT TÌM) --- */
+        .search-box { margin-bottom: 20px; }
         .label-title { font-size: 12px; font-weight: bold; color: #5f6368; margin-bottom: 8px; text-transform: uppercase; display: block; }
         
-        /* Ô inputItemNo bo 4 góc, width 100% cực sạch đẹp (Giống ảnh 2) */
+        .search-wrapper {
+            display: flex;
+            width: 100%;
+            border: 2px solid #dadce0;
+            border-radius: 12px;
+            overflow: hidden; /* Ép không cho lòi góc */
+            box-sizing: border-box;
+            background: white;
+            transition: 0.2s;
+        }
+        .search-wrapper:focus-within {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+        }
+
         #itemInput { 
-            width: 100%; 
-            padding: 14px; /* Tăng padding chút cho dễ bấm */
-            border: 2px solid #dadce0; 
-            border-radius: 12px; /* Bo 4 góc chuẩn mực */
+            flex: 1; 
+            padding: 14px; 
+            border: none; 
             font-size: 16px; 
             outline: none; 
-            transition: 0.2s; 
-            box-sizing: border-box; 
+            background: transparent;
+            min-width: 0; /* Tránh vỡ layout mobile */
         }
-        #itemInput:focus { border-color: #1a73e8; background: #f8fbff; }
 
-        /* ĐÃ XÓA STYLE CỦA BÚT TÌM (.input-group-row và .btn-search) */
+        .btn-search {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 0 24px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-search:active { background-color: #1557b0; }
+        .btn-search:disabled { background-color: #ccc; cursor: not-allowed; }
 
         /* --- 3. KHU VỰC BỘ LỌC (COMBOBOX) --- */
-        /* ComboBox cũng bo 4 góc, width 100% căn đều với ô Item */
         #filterArea { display: none; flex-direction: column; gap: 12px; background: #f1f8ff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #c2e7ff; }
         .filter-item { display: flex; flex-direction: column; width: 100%; }
 
@@ -75,9 +97,18 @@
     <h2>📊 QUẢN LÝ TỒN KHO</h2>
     
     <div class="search-box">
-        <label class="label-title">1. Nhập mã hàng (Ấn Enter)</label>
-        <input type="text" id="itemInput" placeholder="Ví dụ: HM2111..." enterkeyhint="search" onkeypress="handleItemKeyPress(event)">
+        <label class="label-title">1. Nhập hoặc quét mã hàng</label>
+        
+        <div class="search-wrapper">
+            <input type="text" id="itemInput" placeholder="Ví dụ: HM2111..." enterkeyhint="search" onkeypress="handleItemKeyPress(event)">
+            
+            <button id="btnScan" onclick="startScanner()" style="background: white; border: none; cursor: pointer; font-size: 20px; padding: 0 10px;" title="Quét mã vạch">📷</button>
+            
+            <button id="btnSearch" class="btn-search" onclick="loadData()">TÌM</button>
+        </div>
     </div>
+
+    <div id="reader" style="width: 100%; display: none; margin-bottom: 15px; border-radius: 12px; overflow: hidden; border: 2px solid #1a73e8;"></div>
 
     <div id="filterArea">
         <div class="filter-item">
@@ -109,21 +140,50 @@
     <div id="statusMessage" class="status">Sẵn sàng.</div>
 </div>
 
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
 <script>
 let masterData = []; // Dữ liệu gốc lấy từ API
 
-// Kiểm tra login khi mở trang
 window.onload = () => {
     if (!localStorage.getItem('userToken')) window.location.href = 'login.html';
     document.getElementById("itemInput").focus();
 };
 
-// Xử lý phím Enter (NHẤT QUÁN TRÊN PC/MOBILE VÀ FIX LỖI NHẢY FOCUS)
+// --- LOGIC QUÉT MÃ VẠCH (CAMERA) ---
+let html5QrcodeScanner;
+
+function startScanner() {
+    document.getElementById("reader").style.display = "block";
+    html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { fps: 10, qrbox: { width: 250, height: 100 } }, 
+        false
+    );
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+    document.getElementById("itemInput").value = decodedText;
+    
+    // Tắt camera và ẩn khung đi
+    html5QrcodeScanner.clear();
+    document.getElementById("reader").style.display = "none";
+    
+    // Quét xong thì tự động chạy API tìm kiếm luôn
+    loadData();
+}
+
+function onScanFailure(error) {
+    // Không cần log lỗi liên tục khi camera đang dò mã
+}
+
+// --- LOGIC ENTER ---
 function handleItemKeyPress(event) {
     if (event.key === "Enter") {
-        event.preventDefault(); // CHẶN nhảy focus bậy bạ của Enter
-        document.getElementById("itemInput").blur(); // Ẩn bàn phím di động để người dùng thấy kết quả
-        loadData(); // Gọi API
+        event.preventDefault(); 
+        document.getElementById("itemInput").blur(); 
+        loadData(); 
     }
 }
 
@@ -132,13 +192,16 @@ async function loadData() {
     const token = localStorage.getItem('userToken');
     const itemNo = document.getElementById("itemInput").value.trim();
     const statusMsg = document.getElementById("statusMessage");
+    const btn = document.getElementById("btnSearch");
 
     if (itemNo.length < 3) {
         alert("Vinh ơi, nhập ít nhất 3 ký tự nhé!");
         return;
     }
 
-    // Trạng thái chờ (Đã bỏ nút nên không cần style cho button)
+    // Khóa nút bấm khi đang tải
+    btn.disabled = true;
+    btn.innerText = "⏳";
     statusMsg.innerHTML = '<span style="color:#1a73e8; font-weight:bold;">🔄 Đang kiểm tra tồn kho...</span>';
     
     try {
@@ -159,66 +222,54 @@ async function loadData() {
             renderTable([]);
             statusMsg.innerHTML = "❌ Không tìm thấy mã hàng này.";
         } else {
-            // Nạp xong data
             document.getElementById("filterArea").style.display = "flex";
             setupFilters(data);
             renderTable(data);
             
-            // 🔥 ĐÂY LÀ ĐIỂM QUAN TRỌNG: 
-            // Sau khi nạp data xong, tự động nhảy focus xuống ComboBox (trong code Vinh là ô Size)
-            // giúp nhân viên thao tác một mạch mà không cần chạm tay vào màn hình.
-            document.getElementById("sizeFilter").focus(); 
-            
+            // Tự động nhảy focus xuống ô Store
+            document.getElementById("storeFilter").focus(); 
             statusMsg.innerHTML = `✅ Đã tải ${data.length} dòng. Gõ để lọc nhanh hoặc chọn dropdown.`;
         }
     } catch (err) {
         statusMsg.innerHTML = "⚠️ Lỗi API kết nối Server!";
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "TÌM";
     }
 }
 
-// --- TẠO DANH SÁCH LỌC (CHỨA TRONG masterData) ---
+// --- TẠO DANH SÁCH LỌC GỐC ---
 function setupFilters(data) {
     const storeSel = document.getElementById("storeFilter");
     
-    // Chỉ tạo danh sách Store (vì Store là gốc)
     const stores = [...new Set(data.map(i => i.store))].sort();
     storeSel.innerHTML = '<option value="all">--- Tất cả Store ---</option>' + 
                          stores.map(s => `<option value="${s}">${s}</option>`).join('');
     
-    // Gọi luôn hàm applyFilter để nó tự động tạo danh sách Size tương ứng
+    // Gọi lọc để đồng bộ Size
     applyFilter();
 }
 
-// --- LỌC CUMULATIVE (LỌC KÉP) ---
-// --- LỌC CUMULATIVE & ĐỒNG BỘ COMBOBOX SIZE TỰ ĐỘNG ---
+// --- LỌC CUMULATIVE & ĐỒNG BỘ SIZE THÔNG MINH ---
 function applyFilter() {
     const sStore = document.getElementById("storeFilter").value;
     const sizeSel = document.getElementById("sizeFilter");
     
-    // Lấy cái size mà người dùng ĐANG chọn (nếu có)
     let currentSelectedSize = sizeSel.value || "all";
 
-    // 1. TÌM CÁC SIZE CÓ SẴN TRONG STORE ĐÃ CHỌN
-    // Nếu chọn "all" Store thì lấy toàn bộ data, nếu chọn 1 Store thì lọc data của Store đó
     const dataForStore = (sStore === "all") ? masterData : masterData.filter(i => i.store == sStore);
-    
-    // Trích xuất các Size không trùng lặp từ dataForStore
     const availableSizes = [...new Set(dataForStore.map(i => i.size))].sort();
 
-    // 2. VẼ LẠI COMBOBOX SIZE
     sizeSel.innerHTML = '<option value="all">--- Tất cả Size ---</option>' + 
                         availableSizes.map(sz => `<option value="${sz}">${sz}</option>`).join('');
 
-    // 3. GIỮ LẠI SIZE CŨ NẾU NÓ TỒN TẠI TRONG STORE MỚI
-    // (Ví dụ: Đang chọn Size L ở Store A, chuyển sang Store B nếu vẫn có Size L thì giữ nguyên, không có thì reset về "Tất cả")
     if (availableSizes.map(String).includes(currentSelectedSize)) {
         sizeSel.value = currentSelectedSize;
     } else {
         sizeSel.value = "all";
-        currentSelectedSize = "all"; // Reset lại biến để lát nữa lọc bảng cho chuẩn
+        currentSelectedSize = "all";
     }
 
-    // 4. LỌC DỮ LIỆU ĐỂ VẼ BẢNG KẾT QUẢ CUỐI CÙNG
     const filtered = masterData.filter(i => {
         return (sStore === "all" || i.store == sStore) && 
                (currentSelectedSize === "all" || String(i.size) === currentSelectedSize);
