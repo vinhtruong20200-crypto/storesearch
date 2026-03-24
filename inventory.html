@@ -289,7 +289,7 @@ function renderTable(data) {
 
     tbody.innerHTML = data.map(r => `
         <tr>
-            <td>${r.store}</td>
+            <td>${r.shortName}</td>
             <td style="font-weight:600;">${r.itemNo}</td>
             <td><span style="background:#f1f3f4; padding:4px 10px; border-radius:6px; font-weight:bold;">${r.size}</span></td>
             <td class="qty-cell">${r.qty}</td>
