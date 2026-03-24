@@ -127,8 +127,9 @@
                 <tr>
                     <th>Store</th>
                     <th>ItemNo</th>
-                    <th>Size</th>
                     <th>Qty</th>
+                    <th>Size</th>
+                    
                 </tr>
             </thead>
             <tbody>
@@ -296,8 +297,9 @@ function renderTable(data) {
         <tr>
             <td style="font-weight:bold; color:#1a73e8;">${r.shortName}</td>
             <td style="font-weight:600;">${r.itemNo}</td>
+             <td class="qty-cell">${r.qty}</td>
             <td><span style="background:#f1f3f4; padding:4px 10px; border-radius:6px; font-weight:bold;">${r.size}</span></td>
-            <td class="qty-cell">${r.qty}</td>
+           
         </tr>
     `).join('');
 }
