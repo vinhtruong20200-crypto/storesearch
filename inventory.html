@@ -179,26 +179,49 @@ async function loadData() {
 // --- TẠO DANH SÁCH LỌC (CHỨA TRONG masterData) ---
 function setupFilters(data) {
     const storeSel = document.getElementById("storeFilter");
-    const sizeSel = document.getElementById("sizeFilter");
-
+    
+    // Chỉ tạo danh sách Store (vì Store là gốc)
     const stores = [...new Set(data.map(i => i.store))].sort();
-    const sizes = [...new Set(data.map(i => i.size))].sort();
-
     storeSel.innerHTML = '<option value="all">--- Tất cả Store ---</option>' + 
                          stores.map(s => `<option value="${s}">${s}</option>`).join('');
     
-    sizeSel.innerHTML = '<option value="all">--- Tất cả Size ---</option>' + 
-                        sizes.map(sz => `<option value="${sz}">${sz}</option>`).join('');
+    // Gọi luôn hàm applyFilter để nó tự động tạo danh sách Size tương ứng
+    applyFilter();
 }
 
 // --- LỌC CUMULATIVE (LỌC KÉP) ---
+// --- LỌC CUMULATIVE & ĐỒNG BỘ COMBOBOX SIZE TỰ ĐỘNG ---
 function applyFilter() {
     const sStore = document.getElementById("storeFilter").value;
-    const sSize = document.getElementById("sizeFilter").value;
+    const sizeSel = document.getElementById("sizeFilter");
+    
+    // Lấy cái size mà người dùng ĐANG chọn (nếu có)
+    let currentSelectedSize = sizeSel.value || "all";
 
+    // 1. TÌM CÁC SIZE CÓ SẴN TRONG STORE ĐÃ CHỌN
+    // Nếu chọn "all" Store thì lấy toàn bộ data, nếu chọn 1 Store thì lọc data của Store đó
+    const dataForStore = (sStore === "all") ? masterData : masterData.filter(i => i.store == sStore);
+    
+    // Trích xuất các Size không trùng lặp từ dataForStore
+    const availableSizes = [...new Set(dataForStore.map(i => i.size))].sort();
+
+    // 2. VẼ LẠI COMBOBOX SIZE
+    sizeSel.innerHTML = '<option value="all">--- Tất cả Size ---</option>' + 
+                        availableSizes.map(sz => `<option value="${sz}">${sz}</option>`).join('');
+
+    // 3. GIỮ LẠI SIZE CŨ NẾU NÓ TỒN TẠI TRONG STORE MỚI
+    // (Ví dụ: Đang chọn Size L ở Store A, chuyển sang Store B nếu vẫn có Size L thì giữ nguyên, không có thì reset về "Tất cả")
+    if (availableSizes.map(String).includes(currentSelectedSize)) {
+        sizeSel.value = currentSelectedSize;
+    } else {
+        sizeSel.value = "all";
+        currentSelectedSize = "all"; // Reset lại biến để lát nữa lọc bảng cho chuẩn
+    }
+
+    // 4. LỌC DỮ LIỆU ĐỂ VẼ BẢNG KẾT QUẢ CUỐI CÙNG
     const filtered = masterData.filter(i => {
         return (sStore === "all" || i.store == sStore) && 
-               (sSize === "all" || i.size == sSize);
+               (currentSelectedSize === "all" || String(i.size) === currentSelectedSize);
     });
 
     renderTable(filtered);
