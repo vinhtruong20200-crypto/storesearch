@@ -142,6 +142,8 @@
 
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
+
+
 <script>
 let masterData = []; // Dữ liệu gốc lấy từ API
 
@@ -175,7 +177,7 @@ function onScanSuccess(decodedText, decodedResult) {
 }
 
 function onScanFailure(error) {
-    // Không cần log lỗi liên tục khi camera đang dò mã
+    // Bỏ qua lỗi trong quá trình camera đang dò tìm mã
 }
 
 // --- LOGIC ENTER ---
@@ -238,11 +240,12 @@ async function loadData() {
     }
 }
 
-// --- TẠO DANH SÁCH LỌC GỐC ---
+// --- TẠO DANH SÁCH LỌC GỐC (DÙNG SHORTNAME) ---
 function setupFilters(data) {
     const storeSel = document.getElementById("storeFilter");
     
-    const stores = [...new Set(data.map(i => i.store))].sort();
+    // Lấy shortName thay vì store
+    const stores = [...new Set(data.map(i => i.shortName))].sort();
     storeSel.innerHTML = '<option value="all">--- Tất cả Store ---</option>' + 
                          stores.map(s => `<option value="${s}">${s}</option>`).join('');
     
@@ -257,7 +260,8 @@ function applyFilter() {
     
     let currentSelectedSize = sizeSel.value || "all";
 
-    const dataForStore = (sStore === "all") ? masterData : masterData.filter(i => i.store == sStore);
+    // Lọc dataForStore dùng shortName
+    const dataForStore = (sStore === "all") ? masterData : masterData.filter(i => i.shortName == sStore);
     const availableSizes = [...new Set(dataForStore.map(i => i.size))].sort();
 
     sizeSel.innerHTML = '<option value="all">--- Tất cả Size ---</option>' + 
@@ -270,8 +274,9 @@ function applyFilter() {
         currentSelectedSize = "all";
     }
 
+    // Lọc mảng kết quả cuối cùng dùng shortName
     const filtered = masterData.filter(i => {
-        return (sStore === "all" || i.store == sStore) && 
+        return (sStore === "all" || i.shortName == sStore) && 
                (currentSelectedSize === "all" || String(i.size) === currentSelectedSize);
     });
 
@@ -289,7 +294,7 @@ function renderTable(data) {
 
     tbody.innerHTML = data.map(r => `
         <tr>
-            <td>${r.shortName}</td>
+            <td style="font-weight:bold; color:#1a73e8;">${r.shortName}</td>
             <td style="font-weight:600;">${r.itemNo}</td>
             <td><span style="background:#f1f3f4; padding:4px 10px; border-radius:6px; font-weight:bold;">${r.size}</span></td>
             <td class="qty-cell">${r.qty}</td>
