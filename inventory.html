@@ -4,109 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Tồn kho - Inventory System</title>
-   <style>
+    <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 10px; background-color: #f4f7f6; }
         .container { max-width: 800px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        h2 { color: #333; text-align: center; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px;}
+        h2 { color: #333; text-align: center; margin-bottom: 15px; font-size: 20px;}
         
-        /* Khu vực tìm kiếm */
-        .search-box { display: flex; gap: 6px; margin-bottom: 10px; }
-        #itemInput { flex: 1; padding: 10px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; transition: 0.3s; width: 100%;}
-        #itemInput:focus { border-color: #007bff; }
+        /* Khu vực nhập liệu 2 ô */
+        .search-box { display: flex; gap: 8px; margin-bottom: 10px; }
+        #itemInput { flex: 2; padding: 12px; border: 2px solid #007bff; border-radius: 8px; font-size: 16px; outline: none; }
+        #sizeInput { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 16px; outline: none; transition: 0.3s; }
+        #sizeInput:focus { border-color: #28a745; }
         
-        .btn-search { padding: 0 15px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;}
-        .btn-search:disabled { background-color: #ccc; }
-
         /* Khu vực lọc Store */
         .filter-box { background: #e9f2ff; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: none; }
         #storeFilter { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #b6d4fe; font-size: 14px; margin-top: 5px; box-sizing: border-box;}
 
-        /* Bảng dữ liệu cơ bản cho máy tính */
+        /* Bảng dữ liệu */
         .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 5px; background: white; }
         th { background-color: #007bff; color: white; padding: 10px 5px; font-size: 12px; text-transform: uppercase; }
         td { border-bottom: 1px solid #eee; padding: 10px 5px; font-size: 14px; text-align: center; }
         tr:nth-child(even) { background-color: #fafafa; }
         
-        /* Đánh dấu cột quan trọng */
         .qty-cell { font-weight: bold; color: #d32f2f; font-size: 16px !important; }
-        .item-cell { font-weight: 600; color: #333; word-break: break-all; } /* Tự xuống dòng nếu Item quá dài */
+        .item-cell { font-weight: 600; color: #333; }
 
         .status { margin-top: 15px; font-size: 13px; text-align: center; color: #666; }
         .loading { color: #007bff; font-weight: bold; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.5; } }
 
-        /* ====================================================== */
-        /* 🔥 VŨ KHÍ BÍ MẬT: XỬ LÝ CHO ĐIỆN THOẠI (Dưới 600px) 🔥 */
-        /* ====================================================== */
+        /* Responsive Mobile */
         @media screen and (max-width: 600px) {
-            
-            /* 1. Ẩn tiêu đề bảng cũ đi */
+            .search-box { flex-direction: row; } /* Giữ nằm ngang trên mobile nếu cần, hoặc column nếu muốn to hơn */
             table thead { display: none; }
-            
-            /* 2. Biến mỗi dòng <tr> thành một cái thẻ (Card) */
-            table tr { 
-                display: block; 
-                margin-bottom: 10px; 
-                border: 1px solid #eee; 
-                border-radius: 8px; 
-                padding: 10px; 
-                background: white;
-                position: relative; /* Để cột Qty nhảy vào góc */
-            }
-
-            /* 3. Sắp xếp lại các ô <td> bên trong thẻ */
-            table td { 
-                display: block; 
-                text-align: left; 
-                padding: 4px 0; 
-                border: none;
-                font-size: 14px;
-            }
-
-            /* 4. Thêm nhãn (Store:, ItemNo:) vào trước dữ liệu cho dễ phân biệt */
-            table td::before { 
-                font-weight: bold; 
-                color: #888; 
-                margin-right: 5px; 
-                display: inline-block;
-                width: 60px; /* Độ rộng nhãn */
-            }
-            
-            /* Vinh copy đúng tên cột vào đây nhé */
+            table tr { display: block; margin-bottom: 10px; border: 1px solid #eee; border-radius: 8px; padding: 10px; position: relative; }
+            table td { display: block; text-align: left; padding: 4px 0; border: none; }
+            table td::before { font-weight: bold; color: #888; margin-right: 5px; display: inline-block; width: 60px; }
             table td:nth-of-type(1)::before { content: "Store:"; }
             table td:nth-of-type(2)::before { content: "Item:"; }
             table td:nth-of-type(3)::before { content: "Size:"; }
-
-            /* 5. Cột số lượng: Phóng to và đưa về góc phải trên */
-            .qty-cell { 
-                position: absolute; 
-                right: 10px; 
-                top: 10px; 
-                font-size: 22px !important; 
-                color: #d32f2f; 
-                padding: 0 !important;
-            }
-            /* Ẩn cái chữ "Số lượng" thừa ở cột Qty trên mobile */
+            .qty-cell { position: absolute; right: 10px; top: 10px; font-size: 22px !important; }
             .qty-cell::before { content: ""; display: none !important; }
-
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📊 ST</h2>
+    <h2>📊 QUẢN LÝ KHO</h2>
     
     <div class="search-box">
-        <input type="text" id="itemInput" placeholder="Nhập mã Item (ít nhất 3 ký tự)..." onkeypress="handleKeyPress(event)">
-        <button id="btnSearch" class="btn-search" onclick="loadData()">TÌM KIẾM</button>
+        <input type="text" id="itemInput" placeholder="Mã Item + Enter..." onkeypress="handleItemKeyPress(event)">
+        <input type="text" id="sizeInput" placeholder="Lọc Size..." oninput="applyFilter()">
     </div>
 
     <div id="filterContainer" class="filter-box">
-        <label style="font-weight: bold; color: #0056b3;">📍 Lọc nhanh theo Store:</label>
+        <label style="font-weight: bold; color: #0056b3;">📍 Store:</label>
         <select id="storeFilter" onchange="applyFilter()">
-            <option value="all">--- Tất cả cửa hàng ---</option>
+            <option value="all">--- Tất cả ---</option>
         </select>
     </div>
 
@@ -121,7 +76,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td colspan="4" style="color:#999; padding: 30px;">Nhập mã hàng để xem tồn kho</td></tr>
+                <tr><td colspan="4" style="color:#999; padding: 30px;">Gõ mã hàng và nhấn Enter</td></tr>
             </tbody>
         </table>
     </div>
@@ -130,103 +85,99 @@
 </div>
 
 <script>
-let allData = []; // Biến lưu trữ toàn bộ dữ liệu gốc để lọc không cần gọi API lại
+let allData = []; // Lưu trữ dữ liệu gốc từ API
 
+// Kiểm tra login
 window.onload = function() {
     const token = localStorage.getItem('userToken');
-    if (!token) {
-        alert("Phiên làm việc hết hạn!");
-        window.location.href = 'login.html';
-    }
+    if (!token) window.location.href = 'login.html';
 };
 
-function handleKeyPress(event) {
-    if (event.key === "Enter") loadData();
+// Bắt sự kiện Enter ở ô Item
+function handleItemKeyPress(event) {
+    if (event.key === "Enter") {
+        loadData();
+    }
 }
 
-// 1. HÀM GỌI API
+// 1. HÀM GỌI API (Chỉ chạy khi nhấn Enter ở ô Item)
 async function loadData() {
     const token = localStorage.getItem('userToken');
-    const itemInput = document.getElementById("itemInput");
-    const itemNo = itemInput.value.trim();
-    const btn = document.getElementById("btnSearch");
+    const itemNo = document.getElementById("itemInput").value.trim();
     const statusMsg = document.getElementById("statusMessage");
 
     if (itemNo.length < 3) {
-        alert("Vui lòng nhập ít nhất 3 ký tự nhé!");
+        alert("Nhập ít nhất 3 ký tự mã hàng!");
         return;
     }
 
-    // Giao diện lúc đang tải
-    btn.disabled = true;
-    statusMsg.innerHTML = '<span class="loading">🔄 Đang kiểm tra kho...</span>';
+    statusMsg.innerHTML = '<span class="loading">🔄 Đang tải dữ liệu...</span>';
     
     try {
         const url = `https://api.vinh-lab-2026.online/api/inventory?itemNo=${encodeURIComponent(itemNo)}`;
-        const res = await fetch(url, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
+        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
 
         if (res.status === 401) {
-            localStorage.removeItem('userToken');
-            alert("Phiên đăng nhập hết hạn!");
+            alert("Hết hạn đăng nhập!");
             window.location.href = 'login.html';
             return;
         }
 
-        if (!res.ok) throw new Error("Không kết nối được API.");
-
         const data = await res.json();
-        allData = data; // Lưu dữ liệu vào biến toàn cục
+        allData = data; // Lưu dữ liệu mới vào biến tổng
 
         if (!data || data.length === 0) {
             renderTable([]);
-            statusMsg.innerHTML = "❌ Không tìm thấy mã hàng này.";
+            statusMsg.innerHTML = "❌ Không thấy hàng.";
             document.getElementById("filterContainer").style.display = "none";
         } else {
             updateStoreDropdown(data);
-            renderTable(data);
-            statusMsg.innerHTML = `✅ Tìm thấy ${data.length} dòng dữ liệu.`;
+            // Sau khi có data mới, ta chạy applyFilter luôn để khớp với ô Size/Store hiện tại
+            applyFilter();
             document.getElementById("filterContainer").style.display = "block";
         }
     } catch (err) {
-        statusMsg.innerHTML = `<span style="color:red;">⚠️ Lỗi: ${err.message}</span>`;
-    } finally {
-        btn.disabled = false;
+        statusMsg.innerHTML = `<span style="color:red;">⚠️ Lỗi kết nối</span>`;
     }
 }
 
-// 2. HÀM CẬP NHẬT DANH SÁCH STORE VÀO COMBOBOX
+// 2. HÀM CẬP NHẬT COMBOBOX STORE
 function updateStoreDropdown(data) {
     const select = document.getElementById("storeFilter");
-    // Lấy danh sách Store duy nhất (Unique)
     const stores = [...new Set(data.map(item => item.store))].sort();
-    
-    select.innerHTML = '<option value="all">--- Tất cả cửa hàng ---</option>';
+    select.innerHTML = '<option value="all">--- Tất cả ---</option>';
     stores.forEach(s => {
         const opt = document.createElement("option");
         opt.value = s;
-        opt.textContent = `Cửa hàng: ${s}`;
+        opt.textContent = `Store: ${s}`;
         select.appendChild(opt);
     });
 }
 
-// 3. HÀM LỌC DỮ LIỆU KHI CHỌN COMBOBOX
+// 3. HÀM LỌC TỔNG HỢP (KẾT HỢP CẢ STORE VÀ SIZE)
 function applyFilter() {
     const selectedStore = document.getElementById("storeFilter").value;
-    if (selectedStore === "all") {
-        renderTable(allData);
-    } else {
-        const filtered = allData.filter(item => item.store == selectedStore);
-        renderTable(filtered);
-    }
+    const searchSize = document.getElementById("sizeInput").value.trim().toUpperCase();
+    const statusMsg = document.getElementById("statusMessage");
+
+    // Lọc dữ liệu dựa trên 2 điều kiện
+    const filtered = allData.filter(item => {
+        const matchStore = (selectedStore === "all" || item.store == selectedStore);
+        // Kiểm tra xem Size trong data có chứa ký tự đang gõ không
+        const matchSize = (searchSize === "" || item.size.toString().toUpperCase().includes(searchSize));
+        
+        return matchStore && matchSize;
+    });
+
+    renderTable(filtered);
+    statusMsg.innerHTML = `✅ Đang hiển thị ${filtered.length} kết quả.`;
 }
 
-// 4. HÀM VẼ BẢNG (Dùng chung cho cả tìm kiếm và lọc)
+// 4. HÀM VẼ BẢNG
 function renderTable(data) {
     const tbody = document.querySelector("#inventoryTable tbody");
     if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">Không có dữ liệu</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4">Không tìm thấy kết quả phù hợp</td></tr>';
         return;
     }
 
@@ -234,7 +185,7 @@ function renderTable(data) {
         <tr>
             <td>${r.store}</td>
             <td class="item-cell">${r.itemNo}</td>
-            <td><span style="background:#eee; padding:2px 6px; border-radius:4px;">${r.size}</span></td>
+            <td><span style="background:#eee; padding:2px 8px; border-radius:4px; font-weight:bold;">${r.size}</span></td>
             <td class="qty-cell">${r.qty}</td>
         </tr>
     `).join('');
