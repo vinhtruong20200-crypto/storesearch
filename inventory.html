@@ -10,7 +10,23 @@
         h2 { color: #333; text-align: center; margin-bottom: 15px; font-size: 20px;}
         
         /* Layout 2 ô nhập liệu nằm ngang */
-        .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
+      /* Sửa lại để các ô nằm dọc */
+.search-box { 
+    display: flex; 
+    flex-direction: column; /* Ép các phần tử con xếp chồng lên nhau */
+    gap: 12px; /* Khoảng cách giữa ô Item và ô Size */
+    margin-bottom: 15px; 
+}
+
+/* Đảm bảo các group chiếm hết chiều ngang */
+.input-group { 
+    width: 100%; 
+}
+
+input { 
+    width: 100%; /* Đảm bảo TextBox rộng hết cỡ */
+    box-sizing: border-box; /* Giúp padding không làm tràn khung */
+}
         .input-group { flex: 1; display: flex; flex-direction: column; }
         .input-group label { font-size: 12px; font-weight: bold; color: #007bff; margin-bottom: 4px; }
         
