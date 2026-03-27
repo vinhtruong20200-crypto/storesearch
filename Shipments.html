@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhận Hàng (Shipment) - Vinh Lab 2026</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
+        
+        /* Bảng danh sách */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background-color: #1a73e8; color: white; padding: 12px; font-size: 14px; text-transform: uppercase; }
+        td { border-bottom: 1px solid #eee; padding: 12px 8px; font-size: 15px; text-align: center; }
+        
+        .btn-view { background-color: #fbbc05; color: #333; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-action { background-color: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-action:hover { opacity: 0.9; }
+        
+        /* Ô nhập số lượng thực tế */
+        .actual-input { width: 60px; padding: 8px; text-align: center; border: 2px solid #dadce0; border-radius: 6px; font-size: 16px; font-weight: bold; color: #d93025; }
+        .actual-input:focus { border-color: #1a73e8; outline: none; }
+
+        /* Màn hình chi tiết (mặc định ẩn) */
+        #detailScreen { display: none; }
+        #listScreen { display: block; }
+        
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8fbff; padding: 10px; border-radius: 8px; border: 1px solid #c2e7ff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="listScreen">
+        <h2>📦 CÁC LÔ HÀNG ĐANG CHỜ NHẬN</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã Vận Đơn</th>
+                    <th>Ngày Gửi</th>
+                    <th>Tổng SL</th>
+                    <th>Thao Tác</th>
+					<th>Hóa Đơn </th>
+                </tr>
+            </thead>
+            <tbody id="shipmentListBody">
+                </tbody>
+        </table>
+    </div>
+
+    <div id="detailScreen">
+        <div class="header-actions">
+            <button onclick="backToList()" style="background:none; border:none; color:#1a73e8; font-weight:bold; cursor:pointer; font-size:16px;">🔙 Quay lại</button>
+            <h3 style="margin:0; color:#333;" id="currentShipmentNo">Shipment: ---</h3>
+            <button class="btn-action" style="background-color:#1a73e8;" onclick="exportCSV()">📥 Tải CSV cho POS</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item No</th>
+                    <th>Size</th>
+                    <th>SL Gửi</th>
+                    <th>SL Thực Nhận</th>
+                </tr>
+            </thead>
+            <tbody id="shipmentDetailBody">
+                </tbody>
+        </table>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn-action" onclick="confirmReceipt()">✅ XÁC NHẬN NHẬN HÀNG</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- 1. DỮ LIỆU GIẢ LẬP TỪ API C# ---
+// Sau này bạn gọi API GET /api/shipments?storeCode=CAO để lấy cục này
+const mockShipments = [
+    { shipmentNo: "SHP-2026-001", date: "26/03/2026", totalQty: 15 },
+    { shipmentNo: "SHP-2026-002", date: "27/03/2026", totalQty: 50 }
+];
+
+// Dữ liệu chi tiết của 1 lô hàng
+const mockShipmentDetails = [
+    { itemNo: "HM2111", size: "M", expectedQty: 5 },
+    { itemNo: "HM2111", size: "L", expectedQty: 10 },
+    { itemNo: "IJ8123", size: "42", expectedQty: 35 }
+];
+
+// --- 2. HIỂN THỊ DANH SÁCH ---
+window.onload = () => {
+    const tbody = document.getElementById("shipmentListBody");
+    tbody.innerHTML = mockShipments.map(s => `
+        <tr>
+            <td style="font-weight:bold;">${s.shipmentNo}</td>
+            <td>${s.date}</td>
+            <td>${s.totalQty}</td>
+            <td><button class="btn-view" onclick="openDetail('${s.shipmentNo}')">Kiểm tra</button></td>
+        </tr>
+    `).join('');
+};
+
+// --- 3. CHUYỂN MÀN HÌNH CHI TIẾT ---
+function openDetail(shipmentNo) {
+    document.getElementById("listScreen").style.display = "none";
+    document.getElementById("detailScreen").style.display = "block";
+    document.getElementById("currentShipmentNo").innerText = `Mã: ${shipmentNo}`;
+
+    // Load chi tiết lên bảng, gán số lượng thực nhận mặc định bằng số lượng gửi
+    const tbody = document.getElementById("shipmentDetailBody");
+    tbody.innerHTML = mockShipmentDetails.map((item, index) => `
+        <tr>
+            <td style="font-weight:bold;">${item.itemNo}</td>
+            <td><span style="background:#eee; padding:2px 6px; border-radius:4px;">${item.size}</span></td>
+            <td>${item.expectedQty}</td>
+            <td>
+                <input type="number" id="actual_${index}" class="actual-input" value="${item.expectedQty}" min="0">
+            </td>
+        </tr>
+    `).join('');
+}
+
+function backToList() {
+    document.getElementById("detailScreen").style.display = "none";
+    document.getElementById("listScreen").style.display = "block";
+}
+
+// --- 4. XUẤT FILE CSV CHO POS ---
+function exportCSV() {
+    // Tiêu đề cột chuẩn cho POS (thường POS cần Barcode hoặc ItemNo, Qty)
+    let csvContent = "ItemNo,Size,ActualQty\n";
+    
+    // Quét qua các dòng dữ liệu
+    mockShipmentDetails.forEach((item, index) => {
+        // Lấy số lượng người dùng vừa sửa trên ô input
+        let actualVal = document.getElementById(`actual_${index}`).value;
+        csvContent += `${item.itemNo},${item.size},${actualVal}\n`;
+    });
+
+    // Tạo file và ép trình duyệt tải về
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `POS_Import_${document.getElementById("currentShipmentNo").innerText.split(": ")[1]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// --- 5. LƯU XÁC NHẬN VỀ SERVER ---
+function confirmReceipt() {
+    let finalData = [];
+    mockShipmentDetails.forEach((item, index) => {
+        finalData.push({
+            itemNo: item.itemNo,
+            size: item.size,
+            expected: item.expectedQty,
+            actual: parseInt(document.getElementById(`actual_${index}`).value)
+        });
+    });
+
+    console.log("Dữ liệu gửi lên API: ", finalData);
+    alert("Đã xác nhận thành công! Dữ liệu đã được gửi về máy chủ.");
+    // Tại đây bạn gọi API POST (ví dụ fetch('/api/shipments/confirm', ...))
+    backToList();
+}
+</script>
+
+</body>
+</html>
