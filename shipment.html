@@ -103,7 +103,8 @@
     <script>
         // CẤU HÌNH API CỦA BẠN 
         const API_BASE_URL = "https://api.vinh-lab-2026.online/api"; 
-       const currentStoreCode = localStorage.getItem('StoreCode'); 
+  
+           const currentStoreCode = localStorage.getItem('storeCode') || 'N/A';
 
 // 2. Bảo mật màng lọc (Guard Clause): Nếu chưa login mà cố tình vào trang này -> Đá văng ra ngoài!
 if (!currentStoreCode) {
