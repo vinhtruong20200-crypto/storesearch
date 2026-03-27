@@ -114,7 +114,8 @@
             let cbx = document.getElementById("cbxMonthBatch");
             try {
                 // TODO: Mở comment dòng dưới và gọi API thật khi backend C# đã chạy
-                 let response = await fetch(`${API_BASE_URL}/shipment/month-batches');
+                // Dòng code bị lỗi (dòng 125)
+                let response = await fetch(`${API_BASE_URL}/shipment/month-batches');
                  let data = await response.json();
                 
                 // DATA MẪU (Mock) để test giao diện
