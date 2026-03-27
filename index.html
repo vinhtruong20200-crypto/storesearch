@@ -121,9 +121,17 @@ if (!deviceId) {
                     // LƯU QUAN TRỌNG: Lưu token vào trình duyệt
                     localStorage.setItem('userToken', data.token);
                     localStorage.setItem('userName', data.fullName);
-                    
+                    // 3. Đúng thiết bị & Đã được duyệt -> Phát Token
+var token = GenerateToken(user);
+return Ok(new
+{
+    token = token,
+    username = user.UserName,
+    fullName = user.DisplayName,
+    storeCode = user.StoreCode // <--- THÊM DÒNG NÀY ĐỂ BÁO CHO ĐIỆN THOẠI BIẾT
+});
                     // Chuyển hướng sang trang kho
-                    window.location.href = 'inventory.html';
+                    window.location.href = 'dashboard.html';
                 } else {
                     msg.innerText = "Sai tài khoản hoặc mật khẩu!";
                 }
