@@ -121,6 +121,8 @@ if (!deviceId) {
                     // LƯU QUAN TRỌNG: Lưu token vào trình duyệt
                     localStorage.setItem('userToken', data.token);
                     localStorage.setItem('userName', data.fullName);
+                    // 👉 THÊM DÒNG NÀY ĐỂ TRANG SHIPMENT CÓ THỂ ĐỌC ĐƯỢC:
+                    localStorage.setItem('storeCode', data.storeCode); // (Chú ý: data.storeCode phải khớp với tên biến C# trả về)
                     // 3. Đúng thiết bị & Đã được duyệt -> Phát Token
 
                     // Chuyển hướng sang trang kho
