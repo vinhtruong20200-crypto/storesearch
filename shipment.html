@@ -101,7 +101,7 @@
     </div>
 
     <script>
-        // CẤU HÌNH API CỦA BẠN (Sửa link localhost này thành link API thật từ C# backend)
+        // CẤU HÌNH API CỦA BẠN 
         const API_BASE_URL = "https://api.vinh-lab-2026.online/api"; 
         const currentStoreCode = "VN001"; // Gán cứng tạm thời
 
@@ -113,17 +113,22 @@
         async function loadMonthBatches() {
             let cbx = document.getElementById("cbxMonthBatch");
             try {
-                // TODO: Mở comment dòng dưới và gọi API thật khi backend C# đã chạy
-               
+                // ĐÃ SỬA LỖI CÚ PHÁP: Đổi ' thành ` ở đây
                 let response = await fetch(`${API_BASE_URL}/shipment/month-batches`);
-                 let data = await response.json();
+                let data = await response.json();
                 
-                // DATA MẪU (Mock) để test giao diện
-             
+                // MOCK DATA: NẾU API CHƯA CHẠY ĐƯỢC, HÃY MỞ COMMENT ĐOẠN NÀY LÊN ĐỂ TEST
+                /*
+                let data = [
+                    { shid: "SHP-2024-001", month: "Tháng 1" },
+                    { shid: "SHP-2024-002", month: "Tháng 2" }
+                ];
+                */
 
                 cbx.innerHTML = '<option value="">-- Chọn đợt giao hàng --</option>';
                 data.forEach(batch => {
-                    cbx.innerHTML += `<option value="${batch.shid}">Mã: ${batch.shid} (${batch.month})</option>`;
+                    // CẦN CHÚ Ý: Chữ 'shid' và 'month' ở đây phải viết thường hoặc hoa y hệt như cấu trúc JSON trả về từ API C#
+                    cbx.innerHTML += `<option value="${batch.shid}">Mã: ${batch.shid} (Tháng ${batch.month})</option>`;
                 });
             } catch (error) {
                 cbx.innerHTML = '<option value="">Lỗi kết nối máy chủ!</option>';
@@ -147,7 +152,7 @@
             listContainer.innerHTML = '<li style="text-align:center;">⏳ Đang tải dữ liệu...</li>';
 
             try {
-                // TODO: Mở comment dòng dưới để gọi API thật
+                // BƯỚC TIẾP THEO: Nếu C# Backend hàm thứ 2 đã viết xong, hãy mở comment 2 dòng này
                 // let response = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`);
                 // let data = await response.json();
 
@@ -194,24 +199,4 @@
 
             // Đổ dữ liệu lên UI
             document.getElementById("lblInvoiceNo").innerText = invoiceNo;
-            document.getElementById("lblDate").innerText = dateInvoice;
-            document.getElementById("lblQty").innerText = qty;
-            document.getElementById("lblStore").innerText = storeCode;
-            
-            // Hiển thị Card chi tiết
-            document.getElementById("detailSection").style.display = "block";
-        }
-
-        // 4. Bấm xác nhận
-        function confirmShipment() {
-            let invoiceNo = document.getElementById("lblInvoiceNo").innerText;
-            if(confirm(`Bạn xác nhận đã nhận đủ hàng cho phiếu ${invoiceNo}?`)) {
-                // Chỗ này gọi API POST để update C#
-                alert(`✅ Đã xác nhận phiếu ${invoiceNo} thành công! (Test)`);
-                // Gọi hàm load lại danh sách hoặc ẩn phần chi tiết đi
-                document.getElementById("detailSection").style.display = "none";
-            }
-        }
-    </script>
-</body>
-</html>
+            document.getElementById("
