@@ -103,7 +103,13 @@
     <script>
         // CẤU HÌNH API CỦA BẠN 
         const API_BASE_URL = "https://api.vinh-lab-2026.online/api"; 
-        const currentStoreCode = "VN001"; // Gán cứng tạm thời
+       const currentStoreCode = localStorage.getItem('storeCode'); 
+
+// 2. Bảo mật màng lọc (Guard Clause): Nếu chưa login mà cố tình vào trang này -> Đá văng ra ngoài!
+if (!currentStoreCode) {
+    alert("Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn!");
+    window.location.href = "index.html"; // Sửa lại thành tên trang Login thực tế của bạn
+}
 
         document.addEventListener("DOMContentLoaded", function() {
             loadMonthBatches();
@@ -153,14 +159,11 @@
 
             try {
                 // BƯỚC TIẾP THEO: Nếu C# Backend hàm thứ 2 đã viết xong, hãy mở comment 2 dòng này
-                // let response = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`);
-                // let data = await response.json();
+                let response = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`);
+                let data = await response.json();
 
                 // DATA MẪU (Mock) để test giao diện
-                let data = [
-                    { invoiceNo: "INV-10045", dateInvoice: "2024-02-15T00:00:00", qty: 150, storeCode: "VN001" },
-                    { invoiceNo: "INV-10046", dateInvoice: "2024-02-16T00:00:00", qty: 85, storeCode: "VN001" }
-                ];
+           
                 
                 listContainer.innerHTML = ""; 
                 if(data.length === 0) {
