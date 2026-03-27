@@ -199,4 +199,24 @@
 
             // Đổ dữ liệu lên UI
             document.getElementById("lblInvoiceNo").innerText = invoiceNo;
-            document.getElementById("
+            document.getElementById("lblDate").innerText = dateInvoice;
+            document.getElementById("lblQty").innerText = qty;
+            document.getElementById("lblStore").innerText = storeCode;
+            
+            // Hiển thị Card chi tiết
+            document.getElementById("detailSection").style.display = "block";
+        }
+
+        // 4. Bấm xác nhận
+        function confirmShipment() {
+            let invoiceNo = document.getElementById("lblInvoiceNo").innerText;
+            if(confirm(`Bạn xác nhận đã nhận đủ hàng cho phiếu ${invoiceNo}?`)) {
+                // Chỗ này gọi API POST để update C#
+                alert(`✅ Đã xác nhận phiếu ${invoiceNo} thành công! (Test)`);
+                // Gọi hàm load lại danh sách hoặc ẩn phần chi tiết đi
+                document.getElementById("detailSection").style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
