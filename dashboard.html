@@ -87,7 +87,7 @@
     window.onload = () => {
         const token = localStorage.getItem('userToken');
         if (!token) {
-            window.location.href = 'login.html'; // Nếu chưa đăng nhập thì đuổi về trang Login
+            window.location.href = 'index.html'; // Nếu chưa đăng nhập thì đuổi về trang Login
             return;
         }
 
@@ -103,7 +103,7 @@
     function logout() {
         if(confirm("Bạn có chắc chắn muốn đăng xuất?")) {
             localStorage.clear(); // Xóa sạch token và dữ liệu trong két sắt
-            window.location.href = 'login.html'; // Quay về trang đăng nhập
+            window.location.href = 'index.html'; // Quay về trang đăng nhập
         }
     }
 </script>
