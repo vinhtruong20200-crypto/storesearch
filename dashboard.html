@@ -100,12 +100,19 @@
     };
 
     // Hàm đăng xuất
-    function logout() {
-        if(confirm("Bạn có chắc chắn muốn đăng xuất?")) {
-            localStorage.clear(); // Xóa sạch token và dữ liệu trong két sắt
-            window.location.href = 'index.html'; // Quay về trang đăng nhập
-        }
-    }
+   function logout() {
+    // 1. Chỉ xóa (thu hồi) những thông tin của phiên làm việc hiện tại
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('storeCode');
+    
+    // (BẠN TUYỆT ĐỐI KHÔNG GỌI lệnh xóa 'myDeviceId' ở đây)
+    // localStorage.removeItem('myDeviceId'); // <-- Không làm cái này!
+
+    // 2. Thông báo và chuyển hướng người dùng về trang đăng nhập
+    alert("Đã đăng xuất thành công!");
+    window.location.href = "index.html"; // Hoặc đổi thành tên file trang đăng nhập của bạn
+}
 </script>
 
 </body>
