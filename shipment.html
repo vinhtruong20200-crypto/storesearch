@@ -3,172 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nhận Hàng (Shipment) - Vinh Lab 2026</title>
+    <title>Xác nhận Nhận hàng</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
-        
-        /* Bảng danh sách */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { background-color: #1a73e8; color: white; padding: 12px; font-size: 14px; text-transform: uppercase; }
-        td { border-bottom: 1px solid #eee; padding: 12px 8px; font-size: 15px; text-align: center; }
-        
-        .btn-view { background-color: #fbbc05; color: #333; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-action { background-color: #34a853; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-action:hover { opacity: 0.9; }
-        
-        /* Ô nhập số lượng thực tế */
-        .actual-input { width: 60px; padding: 8px; text-align: center; border: 2px solid #dadce0; border-radius: 6px; font-size: 16px; font-weight: bold; color: #d93025; }
-        .actual-input:focus { border-color: #1a73e8; outline: none; }
+        /* CSS Reset & Cơ bản */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; }
 
-        /* Màn hình chi tiết (mặc định ẩn) */
-        #detailScreen { display: none; }
-        #listScreen { display: block; }
-        
-        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: #f8fbff; padding: 10px; border-radius: 8px; border: 1px solid #c2e7ff; }
+        /* Header / App Bar */
+        .app-header {
+            background-color: #0056b3;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .back-btn { color: white; text-decoration: none; font-size: 20px; margin-right: 15px; }
+        .app-title { font-size: 18px; font-weight: bold; }
+
+        /* Container chính */
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        /* Khối Card chung */
+        .card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        /* Form Controls */
+        label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #555; }
+        select {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;
+            font-size: 16px; background-color: #fff;
+        }
+
+        /* Danh sách PickNote */
+        .list-title { font-size: 15px; font-weight: bold; margin-bottom: 10px; color: #444; }
+        .shipment-list { list-style: none; }
+        .shipment-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; border: 1px solid #e0e0e0; border-radius: 6px;
+            margin-bottom: 8px; cursor: pointer; transition: background 0.2s;
+        }
+        .shipment-item:hover, .shipment-item.active { background-color: #eaf4ff; border-color: #0056b3; }
+        .item-info strong { display: block; font-size: 15px; color: #0056b3; }
+        .item-info span { font-size: 13px; color: #666; }
+        .item-qty { font-size: 16px; font-weight: bold; color: #28a745; background: #e8f5e9; padding: 4px 10px; border-radius: 20px; }
+
+        /* Chi tiết & Nút xác nhận */
+        #detailSection { display: none; animation: fadeIn 0.3s ease-in-out; border-left: 4px solid #ff9800; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .btn-confirm {
+            width: 100%; padding: 12px; background-color: #28a745; color: white;
+            border: none; border-radius: 5px; font-size: 16px; font-weight: bold;
+            cursor: pointer; margin-top: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-confirm:hover { background-color: #218838; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="listScreen">
-        <h2>📦 CÁC LÔ HÀNG ĐANG CHỜ NHẬN</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Mã Vận Đơn</th>
-                    <th>Ngày Gửi</th>
-                    <th>Tổng SL</th>
-                    <th>Thao Tác</th>
-					<th>Hóa Đơn </th>
-                </tr>
-            </thead>
-            <tbody id="shipmentListBody">
-                </tbody>
-        </table>
-    </div>
+    <header class="app-header">
+        <a href="index.html" class="back-btn">⬅</a>
+        <div class="app-title">📦 Xác nhận Nhận hàng</div>
+    </header>
 
-    <div id="detailScreen">
-        <div class="header-actions">
-            <button onclick="backToList()" style="background:none; border:none; color:#1a73e8; font-weight:bold; cursor:pointer; font-size:16px;">🔙 Quay lại</button>
-            <h3 style="margin:0; color:#333;" id="currentShipmentNo">Shipment: ---</h3>
-            <button class="btn-action" style="background-color:#1a73e8;" onclick="exportCSV()">📥 Tải CSV cho POS</button>
+    <div class="container">
+        
+        <div class="card">
+            <label for="cbxMonthBatch">1. Chọn Đợt Giao Hàng (Shid):</label>
+            <select id="cbxMonthBatch" onchange="loadPickNotes()">
+                <option value="">-- Đang tải dữ liệu... --</option>
+            </select>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Item No</th>
-                    <th>Size</th>
-                    <th>SL Gửi</th>
-                    <th>SL Thực Nhận</th>
-                </tr>
-            </thead>
-            <tbody id="shipmentDetailBody">
-                </tbody>
-        </table>
-
-        <div style="text-align: center; margin-top: 20px;">
-            <button class="btn-action" onclick="confirmReceipt()">✅ XÁC NHẬN NHẬN HÀNG</button>
+        <div id="detailSection" class="card">
+            <div class="list-title">Chi tiết phiếu giao</div>
+            <div class="detail-row"><span>Mã phiếu (Invoice):</span> <strong id="lblInvoiceNo" style="color:#0056b3;"></strong></div>
+            <div class="detail-row"><span>Ngày giao:</span> <strong id="lblDate"></strong></div>
+            <div class="detail-row"><span>Cửa hàng:</span> <strong id="lblStore"></strong></div>
+            <div class="detail-row"><span>Tổng số lượng:</span> <strong id="lblQty" style="color:#28a745; font-size: 16px;"></strong></div>
+            
+            <button id="btnConfirm" class="btn-confirm" onclick="confirmShipment()">
+                ✅ XÁC NHẬN ĐÃ NHẬN ĐỦ
+            </button>
         </div>
+
+        <div class="card">
+            <div class="list-title">2. Danh sách Phiếu giao (PickNote)</div>
+            <ul id="pickNoteList" class="shipment-list">
+                <li style="color: #888; text-align: center; padding: 15px;">Vui lòng chọn đợt giao hàng ở trên.</li>
+            </ul>
+        </div>
+
     </div>
-</div>
 
-<script>
-// --- 1. DỮ LIỆU GIẢ LẬP TỪ API C# ---
-// Sau này bạn gọi API GET /api/shipments?storeCode=CAO để lấy cục này
-const mockShipments = [
-    { shipmentNo: "SHP-2026-001", date: "26/03/2026", totalQty: 15 },
-    { shipmentNo: "SHP-2026-002", date: "27/03/2026", totalQty: 50 }
-];
+    <script>
+        // CẤU HÌNH API CỦA BẠN (Sửa link localhost này thành link API thật từ C# backend)
+        const API_BASE_URL = "https://api.vinh-lab-2026.online/api"; 
+        const currentStoreCode = "VN001"; // Gán cứng tạm thời
 
-// Dữ liệu chi tiết của 1 lô hàng
-const mockShipmentDetails = [
-    { itemNo: "HM2111", size: "M", expectedQty: 5 },
-    { itemNo: "HM2111", size: "L", expectedQty: 10 },
-    { itemNo: "IJ8123", size: "42", expectedQty: 35 }
-];
-
-// --- 2. HIỂN THỊ DANH SÁCH ---
-window.onload = () => {
-    const tbody = document.getElementById("shipmentListBody");
-    tbody.innerHTML = mockShipments.map(s => `
-        <tr>
-            <td style="font-weight:bold;">${s.shipmentNo}</td>
-            <td>${s.date}</td>
-            <td>${s.totalQty}</td>
-            <td><button class="btn-view" onclick="openDetail('${s.shipmentNo}')">Kiểm tra</button></td>
-        </tr>
-    `).join('');
-};
-
-// --- 3. CHUYỂN MÀN HÌNH CHI TIẾT ---
-function openDetail(shipmentNo) {
-    document.getElementById("listScreen").style.display = "none";
-    document.getElementById("detailScreen").style.display = "block";
-    document.getElementById("currentShipmentNo").innerText = `Mã: ${shipmentNo}`;
-
-    // Load chi tiết lên bảng, gán số lượng thực nhận mặc định bằng số lượng gửi
-    const tbody = document.getElementById("shipmentDetailBody");
-    tbody.innerHTML = mockShipmentDetails.map((item, index) => `
-        <tr>
-            <td style="font-weight:bold;">${item.itemNo}</td>
-            <td><span style="background:#eee; padding:2px 6px; border-radius:4px;">${item.size}</span></td>
-            <td>${item.expectedQty}</td>
-            <td>
-                <input type="number" id="actual_${index}" class="actual-input" value="${item.expectedQty}" min="0">
-            </td>
-        </tr>
-    `).join('');
-}
-
-function backToList() {
-    document.getElementById("detailScreen").style.display = "none";
-    document.getElementById("listScreen").style.display = "block";
-}
-
-// --- 4. XUẤT FILE CSV CHO POS ---
-function exportCSV() {
-    // Tiêu đề cột chuẩn cho POS (thường POS cần Barcode hoặc ItemNo, Qty)
-    let csvContent = "ItemNo,Size,ActualQty\n";
-    
-    // Quét qua các dòng dữ liệu
-    mockShipmentDetails.forEach((item, index) => {
-        // Lấy số lượng người dùng vừa sửa trên ô input
-        let actualVal = document.getElementById(`actual_${index}`).value;
-        csvContent += `${item.itemNo},${item.size},${actualVal}\n`;
-    });
-
-    // Tạo file và ép trình duyệt tải về
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `POS_Import_${document.getElementById("currentShipmentNo").innerText.split(": ")[1]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// --- 5. LƯU XÁC NHẬN VỀ SERVER ---
-function confirmReceipt() {
-    let finalData = [];
-    mockShipmentDetails.forEach((item, index) => {
-        finalData.push({
-            itemNo: item.itemNo,
-            size: item.size,
-            expected: item.expectedQty,
-            actual: parseInt(document.getElementById(`actual_${index}`).value)
+        document.addEventListener("DOMContentLoaded", function() {
+            loadMonthBatches();
         });
-    });
 
-    console.log("Dữ liệu gửi lên API: ", finalData);
-    alert("Đã xác nhận thành công! Dữ liệu đã được gửi về máy chủ.");
-    // Tại đây bạn gọi API POST (ví dụ fetch('/api/shipments/confirm', ...))
-    backToList();
-}
-</script>
+        // 1. Gọi API lấy danh sách Đợt giao hàng (MonthBatch)
+        async function loadMonthBatches() {
+            let cbx = document.getElementById("cbxMonthBatch");
+            try {
+                // TODO: Mở comment dòng dưới và gọi API thật khi backend C# đã chạy
+                 let response = await fetch(`${API_BASE_URL}/shipment/month-batches');
+                 let data = await response.json();
+                
+                // DATA MẪU (Mock) để test giao diện
+             
 
+                cbx.innerHTML = '<option value="">-- Chọn đợt giao hàng --</option>';
+                data.forEach(batch => {
+                    cbx.innerHTML += `<option value="${batch.shid}">Mã: ${batch.shid} (${batch.month})</option>`;
+                });
+            } catch (error) {
+                cbx.innerHTML = '<option value="">Lỗi kết nối máy chủ!</option>';
+                console.error("Lỗi:", error);
+            }
+        }
+
+        // 2. Gọi API lấy danh sách Phiếu giao theo Shid
+        async function loadPickNotes() {
+            let shid = document.getElementById("cbxMonthBatch").value;
+            let listContainer = document.getElementById("pickNoteList");
+            
+            // Ẩn vùng chi tiết mỗi khi đổi đợt
+            document.getElementById("detailSection").style.display = "none"; 
+
+            if (!shid) {
+                listContainer.innerHTML = '<li style="text-align:center; color:#888;">Vui lòng chọn đợt giao hàng.</li>';
+                return;
+            }
+
+            listContainer.innerHTML = '<li style="text-align:center;">⏳ Đang tải dữ liệu...</li>';
+
+            try {
+                // TODO: Mở comment dòng dưới để gọi API thật
+                // let response = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`);
+                // let data = await response.json();
+
+                // DATA MẪU (Mock) để test giao diện
+                let data = [
+                    { invoiceNo: "INV-10045", dateInvoice: "2024-02-15T00:00:00", qty: 150, storeCode: "VN001" },
+                    { invoiceNo: "INV-10046", dateInvoice: "2024-02-16T00:00:00", qty: 85, storeCode: "VN001" }
+                ];
+                
+                listContainer.innerHTML = ""; 
+                if(data.length === 0) {
+                    listContainer.innerHTML = '<li style="text-align:center; color:red;">Không có phiếu giao nào.</li>';
+                    return;
+                }
+
+                data.forEach((item, index) => {
+                    // Escape data an toàn trước khi truyền vào hàm
+                    let dateStr = new Date(item.dateInvoice).toLocaleDateString('vi-VN');
+                    
+                    let li = document.createElement("li");
+                    li.className = "shipment-item";
+                    li.id = `item-${index}`;
+                    li.onclick = () => showDetail(index, item.invoiceNo, dateStr, item.qty, item.storeCode);
+                    
+                    li.innerHTML = `
+                        <div class="item-info">
+                            <strong>${item.invoiceNo}</strong>
+                            <span>Ngày: ${dateStr}</span>
+                        </div>
+                        <div class="item-qty">${item.qty}</div>
+                    `;
+                    listContainer.appendChild(li);
+                });
+            } catch (error) {
+                listContainer.innerHTML = '<li style="color:red;">Lỗi tải dữ liệu phiếu giao!</li>';
+            }
+        }
+
+        // 3. Hiển thị chi tiết khi click vào 1 phiếu
+        function showDetail(index, invoiceNo, dateInvoice, qty, storeCode) {
+            // Đổi màu item đang được chọn
+            document.querySelectorAll('.shipment-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`item-${index}`).classList.add('active');
+
+            // Đổ dữ liệu lên UI
+            document.getElementById("lblInvoiceNo").innerText = invoiceNo;
+            document.getElementById("lblDate").innerText = dateInvoice;
+            document.getElementById("lblQty").innerText = qty;
+            document.getElementById("lblStore").innerText = storeCode;
+            
+            // Hiển thị Card chi tiết
+            document.getElementById("detailSection").style.display = "block";
+        }
+
+        // 4. Bấm xác nhận
+        function confirmShipment() {
+            let invoiceNo = document.getElementById("lblInvoiceNo").innerText;
+            if(confirm(`Bạn xác nhận đã nhận đủ hàng cho phiếu ${invoiceNo}?`)) {
+                // Chỗ này gọi API POST để update C#
+                alert(`✅ Đã xác nhận phiếu ${invoiceNo} thành công! (Test)`);
+                // Gọi hàm load lại danh sách hoặc ẩn phần chi tiết đi
+                document.getElementById("detailSection").style.display = "none";
+            }
+        }
+    </script>
 </body>
 </html>
