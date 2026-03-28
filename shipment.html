@@ -175,7 +175,7 @@
                         <td>${dateStr}</td>
                         <td class="qty-col">${item.qty}</td>
                         <td>
-                            <input type="text" id="do_input_${index}" class="do-input" placeholder="Nhập DO" />
+                            <input type="number" min="0" id="do_input_${index}" class="do-input" placeholder="Nhập DO" />
                         </td>
                         <td>
                             <button id="btn_${index}" class="btn-confirm" onclick="confirmRow('${pickNote}', ${index})">
