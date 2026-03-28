@@ -367,17 +367,38 @@
 }
 
         // 5. Nút Tải CSV
-        async function downloadCSV() {
-            let shid = document.getElementById("cbxMonthBatch").value;
-            if(!shid) return;
-            
-            if(confirm("Bạn muốn tải file CSV chi tiết của đợt hàng này?")) {
-                // TODO: Chỗ này sẽ gọi API [HttpGet] từ C# trả về File()
-                // window.open(`${API_BASE_URL}/shipment/export-csv?store=${currentStoreCode}&shid=${shid}`, '_blank');
-                
-                alert("Đang phát triển API Export CSV trong Backend C#...");
-            }
-        }
+     async function downloadCSV() {
+    const shid = document.getElementById("cbxMonthBatch").value;
+    if (!shid) {
+        alert("Vui lòng chọn đợt hàng!");
+        return;
+    }
+
+    // Hiển thị loading nhẹ cho user
+    const btn = document.getElementById("btnDownloadCSV");
+    const originalText = btn.innerText;
+    btn.innerText = "⏳ Đang nén...";
+    btn.disabled = true;
+
+    try {
+        // Gọi thẳng vào API để tải file về
+        const url = `${API_BASE_URL}/shipment/export-zip?shid=${shid}&store=${currentStoreCode}`;
+        
+        // Tạo link ẩn để tải file (Cách này mượt hơn window.location.href)
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = ""; // Để browser tự lấy tên file từ server
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+    } catch (err) {
+        alert("Lỗi tải file!");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
 
         // 6. Nút Gửi Mail
         async function sendMailToOffice() {
