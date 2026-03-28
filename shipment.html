@@ -265,81 +265,83 @@
 
         // 4. Bấm nút Xác nhận từng dòng (Cập nhật DO, Qty, Note)
         async function confirmRow(pickNote, rowIndex, sysQty) {
-            let doValue = document.getElementById(`do_input_${rowIndex}`).value.trim();
-            let recvInput = document.getElementById(`recv_qty_${rowIndex}`).value;
-            let recvQty = recvInput === "" ? 0 : parseInt(recvInput);
-            let note = document.getElementById(`note_${rowIndex}`).value.trim();
-            
-            // Lớp phòng thủ 1: DO không được rỗng và không chứa ký tự cấm
-            if (!doValue) {
-                alert("❌ Vui lòng nhập số DO trước khi xác nhận!");
-                document.getElementById(`do_input_${rowIndex}`).focus();
-                return;
+    let doValue = document.getElementById(`do_input_${rowIndex}`).value.trim();
+    let recvInput = document.getElementById(`recv_qty_${rowIndex}`).value;
+    let recvQty = recvInput === "" ? 0 : parseInt(recvInput);
+    let note = document.getElementById(`note_${rowIndex}`).value.trim();
+
+    // 1. Kiểm tra đầu vào (Validation)
+    if (!doValue) {
+        alert("❌ Vui lòng nhập số DO trước khi xác nhận!");
+        document.getElementById(`do_input_${rowIndex}`).focus();
+        return;
+    }
+    if (!/^[a-zA-Z0-9-]+$/.test(doValue)) {
+        alert("❌ Số DO chỉ được chứa chữ cái, số và dấu gạch ngang (-).");
+        return;
+    }
+    if (recvQty !== sysQty && note === "") {
+        alert(`❌ Số lượng Thực nhận (${recvQty}) khác System Qty (${sysQty}).\nVui lòng nhập NOTE (Lý do lệch)!`);
+        document.getElementById(`note_${rowIndex}`).focus();
+        return;
+    }
+
+    // 2. Xác nhận lần cuối
+    let confirmMsg = (recvQty === sysQty) 
+        ? `Xác nhận nhận đủ hàng cho PickNote [${pickNote}] với DO [${doValue}]?`
+        : `⚠️ CẢNH BÁO LỆCH HÀNG:\n- Sổ sách: ${sysQty}\n- Thực nhận: ${recvQty}\n- Lý do: ${note}\n\nBạn có chắc chắn muốn xác nhận?`;
+
+    if (confirm(confirmMsg)) {
+        let btn = document.getElementById(`btn_${rowIndex}`);
+        let doElement = document.getElementById(`do_input_${rowIndex}`);
+        let recvElement = document.getElementById(`recv_qty_${rowIndex}`);
+        let noteElement = document.getElementById(`note_${rowIndex}`);
+
+        // Trạng thái chờ
+        btn.disabled = true;
+        btn.innerText = "Đang lưu...";
+
+        try {
+            // 3. Gửi dữ liệu thật lên C# Backend
+            let response = await fetch(`${API_BASE_URL}/shipment/confirm-shipment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    PickNote: pickNote,
+                    DONumber: doValue,
+                    ReceiveQty: recvQty,
+                    Note: note,
+                    StoreCode: currentStoreCode // Lấy từ localStorage lúc nãy
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // THÀNH CÔNG: Cập nhật giao diện
+                document.getElementById(`row_${rowIndex}`).style.backgroundColor = '#d4edda';
+                btn.innerText = "Đã XN";
+                btn.style.backgroundColor = "#6c757d"; // Đổi màu nút sang xám
+                
+                // Khóa các ô input
+                doElement.disabled = true;
+                recvElement.disabled = true;
+                noteElement.disabled = true;
+                
+                console.log("Thành công:", result.message);
+            } else {
+                // THẤT BẠI từ phía Server (ví dụ lỗi SQL, không tìm thấy ID...)
+                throw new Error(result.message || "Server báo lỗi không xác định.");
             }
-            if (!/^[a-zA-Z0-9-]+$/.test(doValue)) {
-                alert("❌ Số DO chỉ được chứa chữ cái, số và dấu gạch ngang (-).");
-                return;
-            }
 
-            // Lớp phòng thủ 2: Thiếu Note khi lệch hàng
-            if (recvQty !== sysQty && note === "") {
-                alert(`❌ Số lượng Thực nhận (${recvQty}) khác System Qty (${sysQty}).\nVui lòng nhập NOTE (Lý do lệch)!`);
-                document.getElementById(`note_${rowIndex}`).focus();
-                return;
-            }
-
-            // Hỏi lại trước khi chốt
-            let confirmMsg = `Xác nhận nhận đủ hàng cho PickNote [${pickNote}] với DO [${doValue}]?`;
-            if (recvQty !== sysQty) {
-                confirmMsg = `⚠️ CẢNH BÁO LỆCH HÀNG:\n- Sổ sách: ${sysQty}\n- Thực nhận: ${recvQty}\n- Lý do: ${note}\n\nBạn có chắc chắn muốn xác nhận?`;
-            }
-
-            if(confirm(confirmMsg)) {
-                let btn = document.getElementById(`btn_${rowIndex}`);
-                let doElement = document.getElementById(`do_input_${rowIndex}`);
-                let recvElement = document.getElementById(`recv_qty_${rowIndex}`);
-                let noteElement = document.getElementById(`note_${rowIndex}`);
-
-                btn.disabled = true;
-                btn.innerText = "Đang lưu...";
-
-                try {
-                    // TODO: MỞ COMMENT KHI ĐÃ CÓ API C# BÊN BACKEND
-                     let response = await fetch(`${API_BASE_URL}/shipment/confirm-shipment`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            PickNote: pickNote,
-                            DONumber: doValue,
-                            ReceiveQty: recvQty,
-                            Note: note,
-                            StoreCode: currentStoreCode
-                        })
-                    });
-                    
-                    if(!response.ok) throw new Error("Cập nhật thất bại");
-                    
-
-                    // GIẢ LẬP ĐỘ TRỄ MẠNG ĐỂ TEST GIAO DIỆN
-                    setTimeout(() => {
-                        document.getElementById(`row_${rowIndex}`).style.backgroundColor = '#d4edda';
-                        btn.innerText = "Đã XN";
-                        
-                        // Khóa các ô input lại không cho sửa nữa
-                        doElement.disabled = true;
-                        recvElement.disabled = true;
-                        if(noteElement.style.display !== "none") {
-                            noteElement.disabled = true;
-                        }
-                    }, 500);
-
-                } catch (error) {
-                    alert("Lỗi kết nối khi xác nhận: " + error.message);
-                    btn.disabled = false;
-                    btn.innerText = "Xác nhận";
-                }
-            }
+        } catch (error) {
+            // LỖI KẾT NỐI hoặc LỖI NGOẠI LỆ
+            alert("❌ Lỗi: " + error.message);
+            btn.disabled = false;
+            btn.innerText = "Xác nhận";
         }
+    }
+}
 
         // 5. Nút Tải CSV
         async function downloadCSV() {
