@@ -11,7 +11,7 @@
 
         /* Header / App Bar */
         .app-header {
-            background-color: #004d99; /* Màu xanh đậm giống header bảng */
+            background-color: #004d99;
             color: white;
             padding: 15px 20px;
             display: flex;
@@ -35,31 +35,50 @@
             font-size: 16px; background-color: #fff;
         }
 
-        /* Thiết kế Bảng (Table) giống file mẫu */
+        /* Thiết kế Bảng (Table) */
         .table-responsive { width: 100%; overflow-x: auto; border-radius: 4px; border: 1px solid #c8d4e3; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; background-color: white; }
-        th, td { border: 1px solid #c8d4e3; padding: 10px; text-align: center; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; background-color: white; }
+        th, td { border: 1px solid #c8d4e3; padding: 10px; text-align: center; font-size: 14px; vertical-align: middle; }
         th { background-color: #004d99; color: white; font-weight: bold; white-space: nowrap; }
         
-        /* Màu xen kẽ cho các dòng */
         tr:nth-child(even) { background-color: #f0f5fa; }
         tr:hover { background-color: #e6f0ff; }
 
-        /* Ô nhập DO và Nút bấm */
-        .do-input {
-            width: 100px; padding: 6px; border: 1px solid #dc3545; border-radius: 4px;
-            text-align: center; font-weight: bold; color: #dc3545; font-size: 14px;
+        /* Input & Buttons */
+        .do-input, .recv-input, .note-input {
+            padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none;
         }
+        .do-input { width: 100px; border-color: #dc3545; color: #dc3545; font-weight: bold; text-align: center; }
+        .do-input:focus { border-color: #bd2130; box-shadow: 0 0 5px rgba(220,53,69,0.5); }
+        
+        .recv-input { width: 70px; text-align: center; font-weight: bold; border: 2px solid #28a745; color: #28a745; }
+        .recv-input.error { border-color: #ff9800; color: #ff9800; background-color: #fff3e0; }
+        
+        .note-input { width: 150px; border-color: #ff9800; background-color: #fff8e1; display: none; }
+
         .btn-confirm {
             background-color: #28a745; color: white; border: none; padding: 6px 12px;
-            border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s;
         }
         .btn-confirm:hover { background-color: #218838; }
         .btn-confirm:disabled { background-color: #6c757d; cursor: not-allowed; }
 
-        /* Cột số liệu nổi bật */
-        .qty-col { font-weight: bold; color: #000; }
-        .ghichu-col { font-weight: bold; color: #444; }
+        /* Action Bar (CSV & Mail) */
+        .action-bar {
+            padding: 15px; background-color: #f8f9fa; border-bottom: 1px solid #c8d4e3; 
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+        }
+        .btn-tool {
+            border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; color: white;
+            display: none; transition: 0.2s;
+        }
+        .btn-csv { background-color: #17a2b8; }
+        .btn-csv:hover { background-color: #138496; }
+        .btn-mail { background-color: #ffc107; color: #333; }
+        .btn-mail:hover { background-color: #e0a800; }
+        
+        .qty-col { font-weight: bold; color: #333; }
+        .ghichu-col { font-weight: bold; color: #004d99; }
     </style>
 </head>
 <body>
@@ -70,6 +89,7 @@
     </header>
 
     <div class="container">
+        
         <div class="card">
             <label for="cbxMonthBatch">1. Chọn Đợt Giao Hàng (Shid):</label>
             <select id="cbxMonthBatch" onchange="loadPickNotes()">
@@ -78,47 +98,62 @@
         </div>
 
         <div class="card" style="padding: 0;">
+            
+            <div class="action-bar">
+                <span style="font-weight: bold; color: #004d99; font-size: 16px;">Chi tiết Phiếu giao</span>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btnDownloadCSV" class="btn-tool btn-csv" onclick="downloadCSV()">
+                        📥 Tải File CSV
+                    </button>
+                    <button id="btnSendEmail" class="btn-tool btn-mail" onclick="sendMailToOffice()">
+                        📧 Send Mail To Office
+                    </button>
+                </div>
+            </div>
+
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>NO</th>
-                            <th>GHI CHÚ (PickNote)</th>
-                            <th>SỐ PHIẾU GIAO (Invoice)</th>
+                            <th>PICKNOTE (Ghi chú)</th>
+                            <th>INVOICE NO</th>
                             <th>DATE INVOICE</th>
-                            <th>TotalQty</th>
-                            <th>DO (Nhập số)</th>
+                            <th>SYSTEM QTY</th>
+                            <th style="color: #ff9800;">RECEIVE QTY</th>
+                            <th>NOTE (Lý do lệch)</th>
+                            <th>DO NUMBER</th>
                             <th>HÀNH ĐỘNG</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr>
-                            <td colspan="7" style="color: #888; padding: 20px;">Vui lòng chọn đợt giao hàng ở trên để hiển thị danh sách.</td>
+                            <td colspan="9" style="color: #888; padding: 20px;">Vui lòng chọn đợt giao hàng ở trên để hiển thị danh sách.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
     </div>
 
     <script>
-        // Cấu hình API và Lấy StoreCode từ đăng nhập
+        // Cấu hình API và Lấy StoreCode từ bộ nhớ
         const API_BASE_URL = "https://api.vinh-lab-2026.online/api"; 
-        const currentStoreCode = localStorage.getItem('storeCode'); 
+        
+        // Nếu chưa lưu StoreCode thì tạm dùng VN001 để dev/test không bị lỗi
+        const currentStoreCode = localStorage.getItem('storeCode') || "VN001"; 
 
-        // Nếu chưa đăng nhập thì đá văng ra ngoài
-        if (!currentStoreCode) {
+        if (!localStorage.getItem('userToken') && !localStorage.getItem('storeCode')) {
             alert("Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn!");
             window.location.href = "index.html"; 
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            if (currentStoreCode) {
-                loadMonthBatches();
-            }
+            loadMonthBatches();
         });
 
-        // 1. Gọi API lấy danh sách Đợt giao hàng
+        // 1. Load danh sách đợt hàng
         async function loadMonthBatches() {
             let cbx = document.getElementById("cbxMonthBatch");
             try {
@@ -134,35 +169,42 @@
             }
         }
 
-        // 2. Gọi API lấy danh sách Phiếu giao và đổ vào Bảng
+        // 2. Load danh sách phiếu giao theo Store và Shid
         async function loadPickNotes() {
             let shid = document.getElementById("cbxMonthBatch").value;
             let tbody = document.getElementById("tableBody");
+            let btnCSV = document.getElementById("btnDownloadCSV");
+            let btnMail = document.getElementById("btnSendEmail");
             
             if (!shid) {
-                tbody.innerHTML = '<tr><td colspan="7" style="color:#888;">Vui lòng chọn đợt giao hàng.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="color:#888;">Vui lòng chọn đợt giao hàng.</td></tr>';
+                btnCSV.style.display = "none";
+                btnMail.style.display = "none";
                 return;
             }
 
-            tbody.innerHTML = '<tr><td colspan="7">⏳ Đang tải dữ liệu...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9">⏳ Đang tải dữ liệu...</td></tr>';
 
             try {
-                // GỌI API THỰC TẾ
                 let response = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`);
                 let data = await response.json();
 
                 tbody.innerHTML = ""; 
                 if(data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Không có phiếu giao nào trong đợt này.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" style="color:red;">Không có phiếu giao nào trong đợt này.</td></tr>';
+                    btnCSV.style.display = "none";
+                    btnMail.style.display = "none";
                     return;
                 }
 
-                // Render từng dòng dữ liệu (Row)
+                // Bật 2 nút CSV và Mail lên
+                btnCSV.style.display = "inline-block";
+                btnMail.style.display = "inline-block";
+
+                // Vẽ dữ liệu ra bảng
                 data.forEach((item, index) => {
                     let dateStr = new Date(item.dateInvoice).toLocaleDateString('vi-VN');
-                    let no = index + 1; // Số thứ tự
-                    
-                    // Ghi chú ở đây chính là thuộc tính PickNote trong C# DTO của bạn
+                    let no = index + 1;
                     let pickNote = item.pickNote || ''; 
 
                     let tr = document.createElement("tr");
@@ -174,11 +216,22 @@
                         <td>${item.invoiceNo}</td>
                         <td>${dateStr}</td>
                         <td class="qty-col">${item.qty}</td>
+                        
                         <td>
-                            <input type="number" min="0" id="do_input_${index}" class="do-input" placeholder="Nhập DO" />
+                            <input type="number" min="0" id="recv_qty_${index}" value="${item.qty}" class="recv-input"
+                                   oninput="checkDiscrepancy(${index}, ${item.qty})">
                         </td>
+                        
                         <td>
-                            <button id="btn_${index}" class="btn-confirm" onclick="confirmRow('${pickNote}', ${index})">
+                            <input type="text" id="note_${index}" class="note-input" placeholder="Lý do lệch..." maxlength="100">
+                        </td>
+
+                        <td>
+                            <input type="text" maxlength="20" id="do_input_${index}" class="do-input" placeholder="Nhập DO" />
+                        </td>
+                        
+                        <td>
+                            <button id="btn_${index}" class="btn-confirm" onclick="confirmRow('${pickNote}', ${index}, ${item.qty})">
                                 Xác nhận
                             </button>
                         </td>
@@ -186,67 +239,152 @@
                     tbody.appendChild(tr);
                 });
             } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="7" style="color:red;">Lỗi tải dữ liệu phiếu giao!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="color:red;">Lỗi tải dữ liệu phiếu giao!</td></tr>';
             }
         }
 
-        // 3. Hàm xử lý khi bấm nút Xác nhận trên từng dòng
-        async function confirmRow(ghiChu, rowIndex) {
-            // Lấy giá trị DO mà user vừa nhập vào ô text
-            let doValue = document.getElementById(`do_input_${rowIndex}`).value.trim();
+        // 3. Kiểm tra sai lệch số lượng để bật/tắt ô Note
+        function checkDiscrepancy(index, sysQty) {
+            let recvInput = document.getElementById(`recv_qty_${index}`);
+            let noteInput = document.getElementById(`note_${index}`);
             
+            // Xóa rỗng thì coi như là 0
+            let recvValue = recvInput.value === "" ? 0 : parseInt(recvInput.value);
+
+            if (recvValue !== sysQty) {
+                // Sai lệch: Hiện ô Note, đổi màu cảnh báo
+                noteInput.style.display = "inline-block";
+                recvInput.classList.add("error");
+            } else {
+                // Khớp số lượng: Ẩn ô Note, xóa chữ đã nhập
+                noteInput.style.display = "none";
+                noteInput.value = "";
+                recvInput.classList.remove("error");
+            }
+        }
+
+        // 4. Bấm nút Xác nhận từng dòng (Cập nhật DO, Qty, Note)
+        async function confirmRow(pickNote, rowIndex, sysQty) {
+            let doValue = document.getElementById(`do_input_${rowIndex}`).value.trim();
+            let recvInput = document.getElementById(`recv_qty_${rowIndex}`).value;
+            let recvQty = recvInput === "" ? 0 : parseInt(recvInput);
+            let note = document.getElementById(`note_${rowIndex}`).value.trim();
+            
+            // Lớp phòng thủ 1: DO không được rỗng và không chứa ký tự cấm
             if (!doValue) {
-                alert("Vui lòng nhập số DO trước khi xác nhận!");
+                alert("❌ Vui lòng nhập số DO trước khi xác nhận!");
                 document.getElementById(`do_input_${rowIndex}`).focus();
                 return;
             }
+            if (!/^[a-zA-Z0-9-]+$/.test(doValue)) {
+                alert("❌ Số DO chỉ được chứa chữ cái, số và dấu gạch ngang (-).");
+                return;
+            }
 
-            if(confirm(`Xác nhận cập nhật DO [${doValue}] cho Ghi chú (PickNote) [${ghiChu}]?`)) {
-                
+            // Lớp phòng thủ 2: Thiếu Note khi lệch hàng
+            if (recvQty !== sysQty && note === "") {
+                alert(`❌ Số lượng Thực nhận (${recvQty}) khác System Qty (${sysQty}).\nVui lòng nhập NOTE (Lý do lệch)!`);
+                document.getElementById(`note_${rowIndex}`).focus();
+                return;
+            }
+
+            // Hỏi lại trước khi chốt
+            let confirmMsg = `Xác nhận nhận đủ hàng cho PickNote [${pickNote}] với DO [${doValue}]?`;
+            if (recvQty !== sysQty) {
+                confirmMsg = `⚠️ CẢNH BÁO LỆCH HÀNG:\n- Sổ sách: ${sysQty}\n- Thực nhận: ${recvQty}\n- Lý do: ${note}\n\nBạn có chắc chắn muốn xác nhận?`;
+            }
+
+            if(confirm(confirmMsg)) {
                 let btn = document.getElementById(`btn_${rowIndex}`);
-                let input = document.getElementById(`do_input_${rowIndex}`);
-                
-                // Vô hiệu hóa nút bấm tạm thời để tránh bấm đúp
+                let doElement = document.getElementById(`do_input_${rowIndex}`);
+                let recvElement = document.getElementById(`recv_qty_${rowIndex}`);
+                let noteElement = document.getElementById(`note_${rowIndex}`);
+
                 btn.disabled = true;
-                btn.innerText = "Đang xử lý...";
+                btn.innerText = "Đang lưu...";
 
                 try {
-                    // TODO: Gọi API POST để cập nhật vào Database
+                    // TODO: MỞ COMMENT KHI ĐÃ CÓ API C# BÊN BACKEND
                     /* let response = await fetch(`${API_BASE_URL}/shipment/confirm`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            GhiChu: ghiChu,
-                            DO: doValue,
+                            PickNote: pickNote,
+                            DONumber: doValue,
+                            ReceiveQty: recvQty,
+                            Note: note,
                             StoreCode: currentStoreCode
                         })
                     });
                     
-                    if(response.ok) {
-                        alert("Thành công!");
-                        // Đổi màu dòng để báo đã xong
-                        document.getElementById(`row_${rowIndex}`).style.backgroundColor = '#d4edda';
-                        btn.innerText = "Đã XN";
-                        input.disabled = true;
-                    } else {
-                        alert("Cập nhật thất bại!");
-                        btn.disabled = false;
-                        btn.innerText = "Xác nhận";
-                    }
+                    if(!response.ok) throw new Error("Cập nhật thất bại");
                     */
 
-                    // GIẢ LẬP TEST GIAO DIỆN (Xóa đoạn này khi đã có API POST)
+                    // GIẢ LẬP ĐỘ TRỄ MẠNG ĐỂ TEST GIAO DIỆN
                     setTimeout(() => {
                         document.getElementById(`row_${rowIndex}`).style.backgroundColor = '#d4edda';
-                        btn.innerText = "Đã xong";
-                        input.disabled = true;
-                        alert(`Giả lập thành công! \nUpdate tbl_InvoiceNo set Do = '${doValue}' where ghichu = '${ghiChu}'`);
+                        btn.innerText = "Đã XN";
+                        
+                        // Khóa các ô input lại không cho sửa nữa
+                        doElement.disabled = true;
+                        recvElement.disabled = true;
+                        if(noteElement.style.display !== "none") {
+                            noteElement.disabled = true;
+                        }
                     }, 500);
 
                 } catch (error) {
-                    alert("Lỗi kết nối khi xác nhận!");
+                    alert("Lỗi kết nối khi xác nhận: " + error.message);
                     btn.disabled = false;
                     btn.innerText = "Xác nhận";
+                }
+            }
+        }
+
+        // 5. Nút Tải CSV
+        async function downloadCSV() {
+            let shid = document.getElementById("cbxMonthBatch").value;
+            if(!shid) return;
+            
+            if(confirm("Bạn muốn tải file CSV chi tiết của đợt hàng này?")) {
+                // TODO: Chỗ này sẽ gọi API [HttpGet] từ C# trả về File()
+                // window.open(`${API_BASE_URL}/shipment/export-csv?store=${currentStoreCode}&shid=${shid}`, '_blank');
+                
+                alert("Đang phát triển API Export CSV trong Backend C#...");
+            }
+        }
+
+        // 6. Nút Gửi Mail
+        async function sendMailToOffice() {
+            let shid = document.getElementById("cbxMonthBatch").value;
+            if(!shid) return;
+
+            if(confirm("Hệ thống sẽ tổng hợp toàn bộ xác nhận của đợt này và gửi Email về Office. Bạn chắc chắn chứ?")) {
+                let btn = document.getElementById("btnSendEmail");
+                btn.disabled = true;
+                btn.innerText = "⏳ Đang gửi...";
+
+                try {
+                    // TODO: Gọi API POST để C# tự động gửi Mail
+                    /*
+                    let response = await fetch(`${API_BASE_URL}/shipment/send-mail`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ StoreCode: currentStoreCode, Shid: shid })
+                    });
+                    if(!response.ok) throw new Error("Gửi mail thất bại");
+                    */
+
+                    setTimeout(() => {
+                        alert("✅ Đã gửi Email báo cáo thành công!");
+                        btn.innerText = "📧 Send Mail To Office";
+                        btn.disabled = false;
+                    }, 1000);
+
+                } catch(error) {
+                    alert("Lỗi: " + error.message);
+                    btn.innerText = "📧 Send Mail To Office";
+                    btn.disabled = false;
                 }
             }
         }
