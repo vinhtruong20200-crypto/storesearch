@@ -203,41 +203,64 @@
 
                 // Vẽ dữ liệu ra bảng
                 data.forEach((item, index) => {
-                    let dateStr = new Date(item.dateInvoice).toLocaleDateString('vi-VN');
-                    let no = index + 1;
-                    let pickNote = item.pickNote || ''; 
+    let dateStr = new Date(item.dateInvoice).toLocaleDateString('vi-VN');
+    let no = index + 1;
+    
+    // 1. KIỂM TRA TRẠNG THÁI: Nếu demandOrderNo có dữ liệu thì coi như đã xác nhận
+    const isConfirmed = (item.demandOrderNo !== null && item.demandOrderNo !== "");
+    
+    // 2. CHUẨN BỊ GIÁ TRỊ HIỂN THỊ
+    const doValue = isConfirmed ? item.demandOrderNo : "";
+    // Nếu chưa nhận (null) thì mặc định hiển thị bằng System Qty
+    const recvValue = (item.receiveQty !== null) ? item.receiveQty : item.qty;
+    const noteValue = item.note || ""; // Giả sử có thêm trường note
 
-                    let tr = document.createElement("tr");
-                    tr.id = `row_${index}`;
-                    
-                    tr.innerHTML = `
-                        <td>${no}</td>
-                        <td class="ghichu-col">${pickNote}</td>
-                        <td>${item.invoiceNo}</td>
-                        <td>${dateStr}</td>
-                        <td class="qty-col">${item.qty}</td>
-                        
-                        <td>
-                            <input type="number" min="0" id="recv_qty_${index}" value="${item.qty}" class="recv-input"
-                                   oninput="checkDiscrepancy(${index}, ${item.qty})">
-                        </td>
-                        
-                        <td>
-                            <input type="text" id="note_${index}" class="note-input" placeholder="Lý do lệch..." maxlength="100">
-                        </td>
+    let tr = document.createElement("tr");
+    tr.id = `row_${index}`;
+    
+    // Nếu đã xác nhận thì tô màu xanh nhạt để dễ phân biệt
+    if (isConfirmed) {
+        tr.style.backgroundColor = '#d4edda';
+    }
 
-                        <td>
-                            <input type="text" maxlength="20" id="do_input_${index}" class="do-input" placeholder="Nhập DO" />
-                        </td>
-                        
-                        <td>
-                            <button id="btn_${index}" class="btn-confirm" onclick="confirmRow('${pickNote}', ${index}, ${item.qty})">
-                                Xác nhận
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+    tr.innerHTML = `
+        <td>${no}</td>
+        <td class="ghichu-col">${item.pickNote}</td>
+        <td>${item.invoiceNo}</td>
+        <td>${dateStr}</td>
+        <td class="qty-col">${item.qty}</td>
+        
+        <td>
+            <input type="number" id="recv_qty_${index}" value="${recvValue}" 
+                   class="recv-input ${isConfirmed && recvValue != item.qty ? 'error' : ''}"
+                   ${isConfirmed ? 'disabled' : ''}
+                   oninput="checkDiscrepancy(${index}, ${item.qty})">
+        </td>
+        
+        <td>
+            <input type="text" id="note_${index}" class="note-input" 
+                   value="${noteValue}"
+                   style="display: ${isConfirmed && recvValue != item.qty ? 'inline-block' : 'none'}"
+                   ${isConfirmed ? 'disabled' : ''}>
+        </td>
+
+        <td>
+            <input type="text" id="do_input_${index}" class="do-input" 
+                   value="${doValue}" 
+                   ${isConfirmed ? 'disabled' : ''} 
+                   placeholder="Nhập DO" />
+        </td>
+        
+        <td>
+            <button id="btn_${index}" class="btn-confirm" 
+                    ${isConfirmed ? 'disabled style="background-color: #6c757d;"' : ''} 
+                    onclick="confirmRow('${item.pickNote}', ${index}, ${item.qty})">
+                ${isConfirmed ? 'Đã XN' : 'Xác nhận'}
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+});
             } catch (error) {
                 tbody.innerHTML = '<tr><td colspan="9" style="color:red;">Lỗi tải dữ liệu phiếu giao!</td></tr>';
             }
