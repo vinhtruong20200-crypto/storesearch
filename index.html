@@ -125,8 +125,12 @@ localStorage.setItem('userToken', data.token);
 
 // 2. Lưu Name (Ưu tiên fullName, nếu không có thì lấy username)
 // Chú ý: username viết thường chữ n theo đúng Backend
-const nameToSave = data.fullName || data.username || "Người dùng";
-localStorage.setItem('userName', nameToSave);
+                    
+// 2. Lưu UserName (Tên tài khoản - ví dụ: vinhtp)
+    localStorage.setItem('userName', data.username || data.userName || "");
+// Display name 
+                    const displayName = data.fullName || data.fullname || data.username || "Nhân viên";
+    localStorage.setItem('fullName', displayName);
 
 // 3. Lưu StoreCode (Backend trả về StoreCode - chữ S và C hoa)
 if (data.StoreCode) {
