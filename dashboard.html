@@ -85,7 +85,7 @@
 <script>
     // Kiểm tra đăng nhập và lấy thông tin hiển thị
     window.onload = () => {
-        const token = localStorage.getItem('userToken');
+        const token = localStorage.getItem('inv_token');
         if (!token) {
             window.location.href = 'index.html'; // Nếu chưa đăng nhập thì đuổi về trang Login
             return;
@@ -102,7 +102,7 @@
     // Hàm đăng xuất
    function logout() {
     // 1. Chỉ xóa (thu hồi) những thông tin của phiên làm việc hiện tại
-    localStorage.removeItem('userToken');
+    localStorage.removeItem('inv_token');
     localStorage.removeItem('userName');
     localStorage.removeItem('storeCode');
     
