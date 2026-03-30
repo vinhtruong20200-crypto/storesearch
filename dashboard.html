@@ -86,33 +86,60 @@
     // Kiểm tra đăng nhập và lấy thông tin hiển thị
     window.onload = () => {
         const token = localStorage.getItem('inv_token');
-        if (!token) {
-            window.location.href = 'index.html'; // Nếu chưa đăng nhập thì đuổi về trang Login
+        const sessionRaw = localStorage.getItem('inv_session');
+
+        // 1. Kiểm tra "Thẻ bài" (Token) và "Gói dữ liệu" (Session)
+        if (!token || !sessionRaw) {
+            window.location.href = 'index.html'; // Nếu thiếu 1 trong 2 thì bắt đăng nhập lại
             return;
         }
 
-        // Lấy tên và mã cửa hàng từ LocalStorage (đã lưu lúc đăng nhập)
-        const fullName = localStorage.getItem('fullName') || 'Nhân viên';
-        const storeCode = localStorage.getItem('storeCode') || 'N/A';
+        try {
+            // 2. "Khui hộp" dữ liệu inv_session
+            const sessionConfig = JSON.parse(sessionRaw);
 
-        document.getElementById('lblFullName').innerText = fullName;
-        document.getElementById('lblStoreCode').innerText = storeCode;
+            // 3. Lấy dữ liệu từ trong Object đã khui
+            // Dùng dấu || để phòng hờ trường hợp dữ liệu bên trong bị trống
+            const fullName = sessionConfig.displayName || "Nhân viên";
+            const storeCode = sessionConfig.storeCode || "N/A";
+
+            // 4. Hiển thị lên giao diện
+            // Chú ý: Đảm bảo ID 'lblFullName' và 'lblStoreCode' có tồn tại trong HTML của bạn
+            if(document.getElementById('lblFullName')) {
+                document.getElementById('lblFullName').innerText = fullName;
+            }
+            if(document.getElementById('lblStoreCode')) {
+                document.getElementById('lblStoreCode').innerText = storeCode;
+            }
+
+            console.log("Phiên làm việc của:", fullName, "tại kho:", storeCode);
+
+        } catch (error) {
+            console.error("Lỗi giải mã dữ liệu phiên làm việc:", error);
+            // Nếu dữ liệu bị lỗi cấu hình, xóa đi và bắt đăng nhập lại cho sạch
+            localStorage.removeItem('inv_session');
+            window.location.href = 'index.html';
+        }
     };
 
-    // Hàm đăng xuất
-   function logout() {
-    // 1. Chỉ xóa (thu hồi) những thông tin của phiên làm việc hiện tại
-    localStorage.removeItem('inv_token');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('storeCode');
-    
-    // (BẠN TUYỆT ĐỐI KHÔNG GỌI lệnh xóa 'myDeviceId' ở đây)
-    // localStorage.removeItem('myDeviceId'); // <-- Không làm cái này!
+    // Hàm đăng xuất (Cập nhật để xóa đúng các Key mới)
+    function logout() {
+        if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+            // 1. Xóa các thông tin phiên làm việc mới
+            localStorage.removeItem('inv_token');
+            localStorage.removeItem('inv_session');
+            
+            // 2. (Tùy chọn) Xóa nốt các tàn dư cũ nếu còn
+            localStorage.removeItem('userName');
+            localStorage.removeItem('fullName');
+            localStorage.removeItem('storeCode');
+            localStorage.removeItem('StoreCode');
 
-    // 2. Thông báo và chuyển hướng người dùng về trang đăng nhập
-    alert("Đã đăng xuất thành công!");
-    window.location.href = "index.html"; // Hoặc đổi thành tên file trang đăng nhập của bạn
-}
+            // 3. Thông báo và chuyển hướng
+            alert("Đã đăng xuất thành công!");
+            window.location.href = "index.html";
+        }
+    }
 </script>
 
 </body>
