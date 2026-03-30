@@ -112,12 +112,12 @@
     </div>
 
     <div class="summary-sticky">
+        
+        <div class="summary-item" style="flex: 2;"> <span class="summary-label">TIẾN ĐỘ XÁC NHẬN</span>
+    <span id="sum_progress" class="summary-value val-success">0 / 0</span>
+</div>
         <div class="summary-item">
-            <span class="summary-label">TỔNG DÒNG</span>
-            <span id="sum_total_rows" class="summary-value">0</span>
-        </div>
-        <div class="summary-item">
-            <span class="summary-label">ĐÃ XN</span>
+            <span class="summary-label">ĐÃ XÁC NHẬN</span>
             <span id="sum_confirmed_rows" class="summary-value val-success">0</span>
         </div>
         <div class="summary-item">
@@ -250,20 +250,38 @@
         }
 
         function updateSummary() {
-            let rows = document.querySelectorAll("#tableBody tr[id^='row_']");
-            let confirmed = 0, totalQty = 0;
-            rows.forEach(row => {
-                let idx = row.id.split("_")[1];
-                let btn = document.getElementById(`btn_${idx}`);
-                if (btn.disabled && btn.innerText === "Đã XN") {
-                    confirmed++;
-                    totalQty += parseInt(document.getElementById(`recv_qty_${idx}`).value) || 0;
-                }
-            });
-            document.getElementById("sum_total_rows").innerText = rows.length;
-            document.getElementById("sum_confirmed_rows").innerText = confirmed;
-            document.getElementById("sum_total_qty").innerText = totalQty.toLocaleString();
+    // 1. Lấy tất cả các dòng dữ liệu thực tế (loại trừ dòng thông báo)
+    let rows = document.querySelectorAll("#tableBody tr[id^='row_']");
+    let totalRows = rows.length;
+    let confirmedCount = 0;
+    let totalQty = 0;
+
+    // 2. Duyệt qua từng dòng để đếm
+    rows.forEach(row => {
+        let idx = row.id.split("_")[1];
+        let btn = document.getElementById(`btn_${idx}`);
+        
+        // Nếu nút đang hiển thị "Đã XN" và bị vô hiệu hóa
+        if (btn && btn.disabled && btn.innerText === "Đã XN") {
+            confirmedCount++;
+            // Cộng dồn tổng số lượng thực nhận
+            totalQty += parseInt(document.getElementById(`recv_qty_${idx}`).value) || 0;
         }
+    });
+
+    // 3. Hiển thị theo định dạng: "Đã xác nhận / Tổng số dòng"
+    document.getElementById("sum_progress").innerText = `${confirmedCount} / ${totalRows}`;
+    
+    // 4. Cập nhật tổng số lượng hàng hóa
+    document.getElementById("sum_total_qty").innerText = totalQty.toLocaleString('vi-VN');
+
+    // Tùy chọn: Đổi màu chữ thành đỏ nếu chưa xong, xanh nếu đã xong hết
+    if (confirmedCount === totalRows && totalRows > 0) {
+        document.getElementById("sum_progress").style.color = "#28a745"; // Xanh lá
+    } else {
+        document.getElementById("sum_progress").style.color = "#dc3545"; // Đỏ để nhắc nhở
+    }
+}
 
         function downloadCSV() { alert("Đang chuẩn bị tải file..."); }
         function sendMailToOffice() { alert("Đang gửi mail báo cáo..."); }
