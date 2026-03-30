@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xác nhận Nhận hàng - Inventory</title>
     <style>
-        /* CSS Gốc & Reset */
+        /* --- CSS RESET & BASE --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background-color: #f4f6f9; 
             color: #333; 
-            padding-bottom: 80px; /* Chừa chỗ cho thanh Sticky Summary */
+            padding-bottom: 90px; /* Chừa chỗ cho thanh Sticky không che dữ liệu */
         }
 
-        /* Header */
+        /* --- HEADER --- */
         .app-header {
             background-color: #004d99;
             color: white;
@@ -23,50 +23,61 @@
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .back-btn { color: white; text-decoration: none; font-size: 20px; margin-right: 15px; }
         .app-title { font-size: 18px; font-weight: bold; }
 
-        /* Container */
+        /* --- LAYOUT --- */
         .container { padding: 15px; max-width: 1200px; margin: 0 auto; }
-
-        /* Card & Table */
         .card { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
         label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #004d99; }
-        select { width: 100%; max-width: 400px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        select { width: 100%; max-width: 400px; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; background: #fff; }
 
+        /* --- TABLE --- */
         .table-responsive { width: 100%; overflow-x: auto; border: 1px solid #c8d4e3; border-radius: 4px; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; background-color: white; }
-        th, td { border: 1px solid #c8d4e3; padding: 10px; text-align: center; font-size: 14px; }
-        th { background-color: #004d99; color: white; }
+        th, td { border: 1px solid #c8d4e3; padding: 10px; text-align: center; font-size: 14px; vertical-align: middle; }
+        th { background-color: #004d99; color: white; white-space: nowrap; }
 
-        /* Input Styles */
-        .recv-input { width: 70px; text-align: center; font-weight: bold; border: 2px solid #28a745; border-radius: 4px; padding: 5px; }
-        .recv-input.error { border-color: #ff9800; background-color: #fff3e0; }
-        .do-input { width: 100px; border: 1px solid #dc3545; color: #dc3545; font-weight: bold; text-align: center; padding: 5px; border-radius: 4px; }
-        .note-input { width: 150px; border: 1px solid #ff9800; background-color: #fff8e1; padding: 5px; border-radius: 4px; }
+        /* --- INPUTS --- */
+        .recv-input { width: 75px; text-align: center; font-weight: bold; border: 2px solid #28a745; border-radius: 4px; padding: 6px; font-size: 14px; }
+        .recv-input.error { border-color: #ff9800; background-color: #fff3e0; color: #ff9800; }
+        .do-input { width: 110px; border: 1px solid #dc3545; color: #dc3545; font-weight: bold; text-align: center; padding: 6px; border-radius: 4px; }
+        .note-input { width: 150px; border: 1px solid #ff9800; background-color: #fff8e1; padding: 6px; border-radius: 4px; }
 
-        /* Button Styles */
-        .btn-confirm { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        /* --- BUTTONS --- */
+        .btn-confirm { background-color: #28a745; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-confirm:disabled { background-color: #6c757d; cursor: not-allowed; }
-        .btn-edit { background-color: #ffc107; color: #333; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 5px; }
+        .btn-edit { background-color: #ffc107; color: #333; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 5px; }
 
-        /* Sticky Summary Bar */
+        /* --- STICKY SUMMARY BAR (FIXED) --- */
         .summary-sticky {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; border-top: 2px solid #004d99;
-            display: flex; justify-content: space-around; padding: 10px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: #ffffff;
+            border-top: 3px solid #004d99;
+            display: flex;
+            padding: 12px 0;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
         }
-        .summary-item { display: flex; flex-direction: column; align-items: center; }
-        .summary-label { font-size: 11px; color: #666; font-weight: bold; }
-        .summary-value { font-size: 18px; color: #004d99; font-weight: bold; }
-        .val-success { color: #28a745; }
+        .summary-item {
+            flex: 1; /* Chia đều 50/50 */
+            text-align: center;
+            border-right: 1px solid #eee;
+        }
+        .summary-item:last-child { border-right: none; }
+        .summary-label { display: block; font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+        .summary-value { font-size: 22px; font-weight: bold; color: #004d99; }
 
-        .action-bar { padding: 10px; display: flex; gap: 10px; justify-content: flex-end; border-bottom: 1px solid #eee; }
-        .btn-tool { padding: 8px 12px; border-radius: 4px; border: none; color: white; font-weight: bold; cursor: pointer; }
+        .action-bar { padding: 10px; display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-tool { padding: 8px 15px; border-radius: 4px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -80,14 +91,14 @@
         <div class="card">
             <label for="cbxMonthBatch">1. Chọn Đợt Giao Hàng (Shid):</label>
             <select id="cbxMonthBatch" onchange="loadPickNotes()">
-                <option value="">-- Chọn đợt hàng --</option>
+                <option value="">-- Đang tải dữ liệu... --</option>
             </select>
         </div>
 
         <div class="card" style="padding: 0;">
             <div class="action-bar">
-                <button class="btn-tool" style="background:#17a2b8" onclick="downloadCSV()">📥 CSV</button>
-                <button class="btn-tool" style="background:#ffc107; color:#333" onclick="sendMailToOffice()">📧 Mail</button>
+                <button class="btn-tool" style="background:#17a2b8" onclick="downloadCSV()">📥 Tải CSV</button>
+                <button class="btn-tool" style="background:#ffc107; color:#333" onclick="sendMailToOffice()">📧 Gửi Mail</button>
             </div>
             <div class="table-responsive">
                 <table>
@@ -96,15 +107,15 @@
                             <th>NO</th>
                             <th>PICKNOTE</th>
                             <th>INVOICE NO</th>
-                            <th>SYSTEM QTY</th>
-                            <th style="color: #ff9800;">RECEIVE QTY</th>
+                            <th>SYS QTY</th>
+                            <th style="color: #ff9800;">RECV QTY</th>
                             <th>NOTE</th>
                             <th>DO NUMBER</th>
                             <th>HÀNH ĐỘNG</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr><td colspan="8">Vui lòng chọn đợt hàng...</td></tr>
+                        <tr><td colspan="8" style="padding:30px; color:#999;">Vui lòng chọn đợt hàng ở trên.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -112,13 +123,9 @@
     </div>
 
     <div class="summary-sticky">
-        
-        <div class="summary-item" style="flex: 2;"> <span class="summary-label">TIẾN ĐỘ XÁC NHẬN</span>
-    <span id="sum_progress" class="summary-value val-success">0 / 0</span>
-</div>
         <div class="summary-item">
-            <span class="summary-label">ĐÃ XÁC NHẬN</span>
-            <span id="sum_confirmed_rows" class="summary-value val-success">0</span>
+            <span class="summary-label">TIẾN ĐỘ (XÁC NHẬN / TỔNG)</span>
+            <span id="sum_progress" class="summary-value" style="color: #dc3545;">0 / 0</span>
         </div>
         <div class="summary-item">
             <span class="summary-label">TỔNG THỰC NHẬN</span>
@@ -139,7 +146,7 @@
                 let data = await res.json();
                 cbx.innerHTML = '<option value="">-- Chọn đợt giao hàng --</option>';
                 data.forEach(b => cbx.innerHTML += `<option value="${b.shid}">${b.shid} (Tháng ${b.month})</option>`);
-            } catch (e) { cbx.innerHTML = '<option>Lỗi API!</option>'; }
+            } catch (e) { cbx.innerHTML = '<option>Lỗi máy chủ!</option>'; }
         }
 
         async function loadPickNotes() {
@@ -147,11 +154,17 @@
             let tbody = document.getElementById("tableBody");
             if (!shid) return;
 
-            tbody.innerHTML = '<tr><td colspan="8">⏳ Đang tải...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8">⏳ Đang tải danh sách...</td></tr>';
             try {
                 let res = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`);
                 let data = await res.json();
                 tbody.innerHTML = "";
+
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="color:red">Không có dữ liệu cho đợt này.</td></tr>';
+                    updateSummary();
+                    return;
+                }
 
                 data.forEach((item, index) => {
                     const isConfirmed = (item.demandOrderNo !== null && item.demandOrderNo !== "");
@@ -161,7 +174,7 @@
 
                     tr.innerHTML = `
                         <td>${index + 1}</td>
-                        <td style="font-weight:bold">${item.pickNote}</td>
+                        <td style="font-weight:bold; color:#004d99">${item.pickNote}</td>
                         <td>${item.invoiceNo}</td>
                         <td style="font-weight:bold">${item.qty}</td>
                         <td>
@@ -174,7 +187,7 @@
                                    style="display: ${(item.receiveQty ?? item.qty) != item.qty ? 'inline-block' : 'none'}" ${isConfirmed ? 'disabled' : ''}>
                         </td>
                         <td>
-                            <input type="text" id="do_input_${index}" class="do-input" value="${item.demandOrderNo ?? ''}" ${isConfirmed ? 'disabled' : ''} placeholder="DO">
+                            <input type="text" id="do_input_${index}" class="do-input" value="${item.demandOrderNo ?? ''}" ${isConfirmed ? 'disabled' : ''} placeholder="Nhập DO">
                         </td>
                         <td>
                             <div style="display:flex; gap:5px; justify-content:center">
@@ -189,7 +202,7 @@
                     tbody.appendChild(tr);
                 });
                 updateSummary();
-            } catch (e) { tbody.innerHTML = '<tr><td colspan="8" style="color:red">Lỗi tải dữ liệu!</td></tr>'; }
+            } catch (e) { tbody.innerHTML = '<tr><td colspan="8" style="color:red">Lỗi tải dữ liệu phiếu giao!</td></tr>'; }
         }
 
         function checkDiscrepancy(index, sysQty) {
@@ -209,12 +222,14 @@
             document.getElementById(`do_input_${index}`).disabled = false;
             document.getElementById(`recv_qty_${index}`).disabled = false;
             document.getElementById(`note_${index}`).disabled = false;
+            
             let btn = document.getElementById(`btn_${index}`);
             btn.disabled = false;
             btn.innerText = "Cập nhật";
             btn.style.background = "#28a745";
+            
             document.getElementById(`btn_edit_${index}`).style.display = "none";
-            document.getElementById(`row_${index}`).style.backgroundColor = "#fff3cd";
+            document.getElementById(`row_${index}`).style.backgroundColor = "#fff3cd"; // Màu vàng nhạt báo hiệu đang sửa
         }
 
         async function confirmRow(pickNote, rowIndex, sysQty) {
@@ -222,69 +237,85 @@
             let recvQty = parseInt(document.getElementById(`recv_qty_${rowIndex}`).value) || 0;
             let note = document.getElementById(`note_${rowIndex}`).value.trim();
 
-            if (!doValue) return alert("Nhập số DO!");
-            if (recvQty !== sysQty && !note) return alert("Cần nhập NOTE lý do lệch!");
+            if (!doValue) { alert("Vui lòng nhập số DO!"); return; }
+            if (recvQty !== sysQty && !note) { alert("Số lượng lệch! Vui lòng nhập lý do vào ô NOTE."); return; }
 
-            if (!confirm("Bạn muốn xác nhận dữ liệu này?")) return;
+            if (!confirm("Xác nhận lưu dữ liệu này vào hệ thống?")) return;
 
             let btn = document.getElementById(`btn_${rowIndex}`);
-            btn.disabled = true; btn.innerText = "⏳...";
+            btn.disabled = true; 
+            btn.innerText = "⏳...";
 
             try {
                 let res = await fetch(`${API_BASE_URL}/shipment/confirm-shipment`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ PickNote: pickNote, DONumber: doValue, ReceiveQty: recvQty, Note: note, StoreCode: currentStoreCode })
+                    body: JSON.stringify({ 
+                        PickNote: pickNote, 
+                        DONumber: doValue, 
+                        ReceiveQty: recvQty, 
+                        Note: note, 
+                        StoreCode: currentStoreCode 
+                    })
                 });
 
                 if (res.ok) {
                     document.getElementById(`row_${rowIndex}`).style.backgroundColor = '#d4edda';
-                    btn.innerText = "Đã XN"; btn.style.background = "#6c757d";
+                    btn.innerText = "Đã XN"; 
+                    btn.style.background = "#6c757d";
+                    
                     document.getElementById(`do_input_${rowIndex}`).disabled = true;
                     document.getElementById(`recv_qty_${rowIndex}`).disabled = true;
                     document.getElementById(`note_${rowIndex}`).disabled = true;
                     document.getElementById(`btn_edit_${rowIndex}`).style.display = "inline-block";
-                    updateSummary();
-                } else { alert("Lỗi từ Server!"); btn.innerText = "Xác nhận"; btn.disabled = false; }
-            } catch (e) { alert("Lỗi kết nối!"); btn.disabled = false; }
+                    
+                    updateSummary(); // Cập nhật con số tổng ngay lập tức
+                } else { 
+                    alert("Không thể lưu dữ liệu. Vui lòng kiểm tra lại API."); 
+                    btn.innerText = "Xác nhận"; 
+                    btn.disabled = false; 
+                }
+            } catch (e) { 
+                alert("Lỗi kết nối Server!"); 
+                btn.disabled = false; 
+                btn.innerText = "Xác nhận";
+            }
         }
 
         function updateSummary() {
-    // 1. Lấy tất cả các dòng dữ liệu thực tế (loại trừ dòng thông báo)
-    let rows = document.querySelectorAll("#tableBody tr[id^='row_']");
-    let totalRows = rows.length;
-    let confirmedCount = 0;
-    let totalQty = 0;
+            let rows = document.querySelectorAll("#tableBody tr[id^='row_']");
+            let confirmedCount = 0;
+            let totalQty = 0;
 
-    // 2. Duyệt qua từng dòng để đếm
-    rows.forEach(row => {
-        let idx = row.id.split("_")[1];
-        let btn = document.getElementById(`btn_${idx}`);
-        
-        // Nếu nút đang hiển thị "Đã XN" và bị vô hiệu hóa
-        if (btn && btn.disabled && btn.innerText === "Đã XN") {
-            confirmedCount++;
-            // Cộng dồn tổng số lượng thực nhận
-            totalQty += parseInt(document.getElementById(`recv_qty_${idx}`).value) || 0;
+            rows.forEach(row => {
+                let idx = row.id.split("_")[1];
+                let btn = document.getElementById(`btn_${idx}`);
+                
+                // Nếu nút đang hiển thị "Đã XN" (trạng thái hoàn thành)
+                if (btn && btn.innerText === "Đã XN") {
+                    confirmedCount++;
+                    let qtyVal = parseInt(document.getElementById(`recv_qty_${idx}`).value) || 0;
+                    totalQty += qtyVal;
+                }
+            });
+
+            // Hiển thị tiến độ: Đã XN / Tổng số dòng
+            const progressDisplay = document.getElementById("sum_progress");
+            progressDisplay.innerText = `${confirmedCount} / ${rows.length}`;
+            
+            // Đổi màu tiến độ: Xanh nếu xong hết, Đỏ nếu chưa xong
+            if (confirmedCount > 0 && confirmedCount === rows.length) {
+                progressDisplay.style.color = "#28a745";
+            } else {
+                progressDisplay.style.color = "#dc3545";
+            }
+
+            // Hiển thị tổng thực nhận
+            document.getElementById("sum_total_qty").innerText = totalQty.toLocaleString('vi-VN');
         }
-    });
 
-    // 3. Hiển thị theo định dạng: "Đã xác nhận / Tổng số dòng"
-    document.getElementById("sum_progress").innerText = `${confirmedCount} / ${totalRows}`;
-    
-    // 4. Cập nhật tổng số lượng hàng hóa
-    document.getElementById("sum_total_qty").innerText = totalQty.toLocaleString('vi-VN');
-
-    // Tùy chọn: Đổi màu chữ thành đỏ nếu chưa xong, xanh nếu đã xong hết
-    if (confirmedCount === totalRows && totalRows > 0) {
-        document.getElementById("sum_progress").style.color = "#28a745"; // Xanh lá
-    } else {
-        document.getElementById("sum_progress").style.color = "#dc3545"; // Đỏ để nhắc nhở
-    }
-}
-
-        function downloadCSV() { alert("Đang chuẩn bị tải file..."); }
-        function sendMailToOffice() { alert("Đang gửi mail báo cáo..."); }
+        function downloadCSV() { alert("Đang chuẩn bị file CSV..."); }
+        function sendMailToOffice() { alert("Đang gửi báo cáo qua Email..."); }
     </script>
 </body>
 </html>
