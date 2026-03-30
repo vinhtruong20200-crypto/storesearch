@@ -4,151 +4,171 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập hệ thống - Inventory</title>
-   <style>
-    body { 
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        display: flex; 
-        justify-content: center; 
-        align-items: center; 
-        height: 100vh; 
-        background: #f4f7f6; 
-        margin: 0; 
-        padding: 20px; /* Đảm bảo form không dính sát mép màn hình đt */
-        box-sizing: border-box;
-    }
-    
-    .login-card { 
-        background: white; 
-        padding: 30px 20px; 
-        border-radius: 10px; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-        width: 100%; /* Chiếm hết chiều rộng được cho phép */
-        max-width: 400px; /* Khóa lại ở 400px khi xem trên máy tính */
-        box-sizing: border-box;
-    }
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: #f4f7f6; 
+            margin: 0; 
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .login-card { 
+            background: white; 
+            padding: 30px 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+            box-sizing: border-box;
+        }
 
-    h2 {
-        text-align: center;
-        color: #333;
-        margin-top: 0;
-        margin-bottom: 25px;
-        font-size: 24px;
-    }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
 
-    input { 
-        width: 100%; 
-        padding: 15px; /* Tăng padding để ô nhập to ra, dễ chạm bằng ngón tay */
-        margin: 10px 0 15px 0; 
-        border: 1px solid #ddd; 
-        border-radius: 5px; 
-        box-sizing: border-box; 
-        font-size: 16px; /* BÍ QUYẾT: Đặt 16px để iPhone/iPad không tự động zoom cận cảnh khi bấm vào ô nhập */
-    }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 10px 0 15px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+        }
 
-    input:focus {
-        border-color: #007bff;
-        outline: none;
-        box-shadow: 0 0 5px rgba(0,123,255,0.2);
-    }
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0,123,255,0.2);
+        }
 
-    button { 
-        width: 100%; 
-        padding: 15px; /* Làm nút to ra */
-        background: #007bff; 
-        color: white; 
-        border: none; 
-        border-radius: 5px; 
-        cursor: pointer; 
-        font-size: 18px; /* Chữ to rõ ràng */
-        font-weight: bold;
-        transition: background 0.3s;
-    }
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            font-weight: bold;
+            transition: background 0.3s;
+        }
 
-    button:hover { background-color: #0056b3; }
-    button:active { background-color: #004085; }
+        button:hover { background-color: #0056b3; }
+        button:active { background-color: #004085; }
 
-    .error { 
-        color: red; 
-        font-size: 14px; 
-        text-align: center; 
-        margin-bottom: 10px;
-        min-height: 20px; /* Giữ khoảng trống để form không bị giật khi hiện lỗi */
-    }
-</style>
+        .error { 
+            color: red; 
+            font-size: 14px; 
+            text-align: center; 
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="login-card">
-        <h2 style="text-align: center;">Hệ Thống Kho</h2>
+        <h2>Hệ Thống Kho</h2>
         <input type="text" id="user" placeholder="Tên đăng nhập">
         <input type="password" id="pass" placeholder="Mật khẩu">
         <div id="errMsg" class="error"></div>
-        <button onclick="handleLogin()">ĐĂNG NHẬP</button>
+        <button id="btnLogin" onclick="handleLogin()">ĐĂNG NHẬP</button>
     </div>
 
     <script>
-        // Hàm sinh mã định danh ngẫu nhiên (UUID)
-function generateDeviceId() {
-    return 'DEV-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
-    
-}
+        // 1. Quản lý Device ID
+        function generateDeviceId() {
+            return 'DEV-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+        }
 
-// Lấy DeviceID cũ, nếu chưa có thì tạo mới và lưu lại
-let deviceId = localStorage.getItem('myDeviceId');
-if (!deviceId) {
-    deviceId = generateDeviceId();
-    localStorage.setItem('myDeviceId', deviceId);
-}
+        let deviceId = localStorage.getItem('myDeviceId');
+        if (!deviceId) {
+            deviceId = generateDeviceId();
+            localStorage.setItem('myDeviceId', deviceId);
+        }
+
+        // 2. Hàm Xử lý Đăng nhập
         async function handleLogin() {
-            const user = document.getElementById("user").value;
-            const pass = document.getElementById("pass").value;
+            const user = document.getElementById("user").value.trim();
+            const pass = document.getElementById("pass").value.trim();
             const msg = document.getElementById("errMsg");
+            const btn = document.getElementById("btnLogin");
+
+            if (!user || !pass) {
+                msg.innerText = "Vui lòng nhập đầy đủ tài khoản và mật khẩu!";
+                return;
+            }
+
+            // Trạng thái đang tải
+            msg.innerText = "⏳ Đang xác thực...";
+            btn.disabled = true;
 
             try {
                 const response = await fetch('https://api.vinh-lab-2026.online/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ Username: user, 
-                                          Password: pass,
-                                          DeviceId: deviceId, // <--- THÊM CÁI NÀY
-                                            DeviceName: "Trình duyệt Web" //
-                                         
-                                         
-                                         })
+                    body: JSON.stringify({ 
+                        Username: user, 
+                        Password: pass,
+                        DeviceId: deviceId,
+                        DeviceName: "Trình duyệt Web"
+                    })
                 });
 
-                // ... bên trong hàm handleLogin, sau khi fetch API ...
+                if (response.ok) {
+                    const data = await response.json();
 
-if (response.ok) {
-    const data = await response.json();
+                    // Cấu hình Session Object chuyên nghiệp
+                    const sessionConfig = {
+                        storeCode: data.storeCode || data.StoreCode || "VN001",
+                        displayName: data.fullName || data.fullname || data.username || "Nhân viên",
+                        format: { decimal: ",", thousand: "." },
+                        lastLogin: new Date().toLocaleString('vi-VN')
+                    };
 
-    // TẠO OBJECT CẤU HÌNH (Gom tất cả thông tin vào một chỗ)
-    const sessionConfig = {
-        storeCode: data.storeCode || data.StoreCode || "VN001",
-        displayName: data.fullName || data.fullname || data.username || "Nhân viên",
-        // Bạn có thể thêm các cấu hình hiển thị tại đây
-        format: { 
-            decimal: ",", 
-            thousand: "." 
-        },
-        lastLogin: new Date().toLocaleString('vi-VN')
-    };
+                    // Lưu dữ liệu vào Storage (Dùng JSON.stringify)
+                    localStorage.setItem('inv_session', JSON.stringify(sessionConfig));
+                    localStorage.setItem('inv_token', data.token || data.Token);
 
-    // LƯU VÀO STORAGE (Phải dùng JSON.stringify vì Storage chỉ lưu được Chuỗi)
-    localStorage.setItem('inv_session', JSON.stringify(sessionConfig));
-    
-    // Token thường được lưu riêng để dễ gửi kèm Header API
-    localStorage.setItem('inv_token', data.token || data.Token);
+                    // --- BÍ QUYẾT: Dọn dẹp các Key cũ để tránh lỗi "phá" code lần sau ---
+                    localStorage.removeItem('userName');
+                    localStorage.removeItem('fullName');
+                    localStorage.removeItem('storeCode');
+                    localStorage.removeItem('StoreCode');
+                    localStorage.removeItem('userToken');
 
-    // Chuyển hướng sang trang chính
-    window.location.href = 'dashboard.html';
-}
+                    // Chuyển hướng
+                    window.location.href = 'dashboard.html';
+                } 
                 else {
-                    msg.innerText = "Sai tài khoản hoặc mật khẩu!";
+                    // Lấy thông báo lỗi chi tiết từ Server (như "Thiết bị chờ duyệt")
+                    const errorMsg = await response.text();
+                    msg.innerText = errorMsg || "Sai tài khoản hoặc mật khẩu!";
                 }
             } catch (error) {
                 msg.innerText = "Không kết nối được tới Server!";
+                console.error("Login Error:", error);
+            } finally {
+                btn.disabled = false;
             }
         }
+
+        // Cho phép nhấn Enter để đăng nhập
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
     </script>
 </body>
 </html>
