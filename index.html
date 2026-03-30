@@ -117,17 +117,28 @@ if (!deviceId) {
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
-                    // LƯU QUAN TRỌNG: Lưu token vào trình duyệt
-                    localStorage.setItem('userToken', data.token);
-                    localStorage.setItem('userName', data.fullName);
-                    // 👉 THÊM DÒNG NÀY ĐỂ TRANG SHIPMENT CÓ THỂ ĐỌC ĐƯỢC:
-                    localStorage.setItem('StoreCode', data.StoreCode); // (Chú ý: data.storeCode phải khớp với tên biến C# trả về)
-                    // 3. Đúng thiết bị & Đã được duyệt -> Phát Token
+    const data = await response.json();
+    
+    // 1. Lưu Token và Name
+    localStorage.setItem('userToken', data.token);
+    localStorage.setItem('userName', data.fullName || data.userName);
 
-                    // Chuyển hướng sang trang kho
-                    window.location.href = 'dashboard.html';
-                } else {
+    // 2. LẤY STORE CODE (Kiểm tra cả 2 trường hợp hoa/thường từ API)
+    // Dùng toán tử || để lấy cái nào có dữ liệu
+    let sCode = data.storeCode || data.StoreCode; 
+
+    if (sCode) {
+        // QUAN TRỌNG: Lưu nhất quán 1 tên duy nhất (nên dùng viết thường cho dễ)
+        localStorage.setItem('storeCode', sCode); 
+        console.log("Đã lưu StoreCode:", sCode);
+    } else {
+        // Nếu điện thoại vẫn không lấy được, hiện alert để debug ngay tại chỗ
+        alert("Cảnh báo: API không trả về StoreCode cho thiết bị này!");
+    }
+
+    window.location.href = 'dashboard.html';
+}
+                else {
                     msg.innerText = "Sai tài khoản hoặc mật khẩu!";
                 }
             } catch (error) {
