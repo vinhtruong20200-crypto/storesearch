@@ -134,76 +134,90 @@
     </div>
 
     <script>
-        const API_BASE_URL = "https://api.vinh-lab-2026.online/api"; 
-        const currentStoreCode = localStorage.getItem('storeCode') || "VN001";
+       const API_BASE_URL = "https://api.vinh-lab-2026.online/api"; 
+    
+    // --- BƯỚC 1: KIỂM TRA TOKEN & SESSION NGAY KHI VÀO TRANG ---
+    const token = localStorage.getItem('inv_token');
+    const sessionData = localStorage.getItem('inv_session');
+    
+    if (!token || !sessionData) {
+        alert("Phiên làm việc hết hạn. Vui lòng đăng nhập lại!");
+        window.location.href = "index.html";
+    }
 
+    // --- BƯỚC 2: "KHUI" SESSION ĐỂ LẤY STORE CODE ---
+    const config = JSON.parse(sessionData);
+    const currentStoreCode = config.storeCode || "VN001";
         document.addEventListener("DOMContentLoaded", loadMonthBatches);
 
-        async function loadMonthBatches() {
-            let cbx = document.getElementById("cbxMonthBatch");
-            try {
-                let res = await fetch(`${API_BASE_URL}/shipment/month-batches`);
-                let data = await res.json();
-                cbx.innerHTML = '<option value="">-- Chọn đợt giao hàng --</option>';
-                data.forEach(b => cbx.innerHTML += `<option value="${b.shid}">${b.shid} (Tháng ${b.month})</option>`);
-            } catch (e) { cbx.innerHTML = '<option>Lỗi máy chủ!</option>'; }
-        }
+  async function loadMonthBatches() {
+        let cbx = document.getElementById("cbxMonthBatch");
+        try {
+            let res = await fetch(`${API_BASE_URL}/shipment/month-batches`, {
+                headers: { 'Authorization': `Bearer ${token}` } // Đính kèm token để xác thực
+            });
+            let data = await res.json();
+            cbx.innerHTML = '<option value="">-- Chọn đợt giao hàng --</option>';
+            data.forEach(b => cbx.innerHTML += `<option value="${b.shid}">${b.shid} (Tháng ${b.month})</option>`);
+        } catch (e) { cbx.innerHTML = '<option>Lỗi máy chủ!</option>'; }
+    }
+       async function loadPickNotes() {
+        let shid = document.getElementById("cbxMonthBatch").value;
+        let tbody = document.getElementById("tableBody");
+        if (!shid) return;
 
-        async function loadPickNotes() {
-            let shid = document.getElementById("cbxMonthBatch").value;
-            let tbody = document.getElementById("tableBody");
-            if (!shid) return;
+        tbody.innerHTML = '<tr><td colspan="8">⏳ Đang tải danh sách...</td></tr>';
+        try {
+            let res = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            let data = await res.json();
+            tbody.innerHTML = "";
 
-            tbody.innerHTML = '<tr><td colspan="8">⏳ Đang tải danh sách...</td></tr>';
-            try {
-                let res = await fetch(`${API_BASE_URL}/shipment/get-by-store?store=${currentStoreCode}&shid=${shid}`);
-                let data = await res.json();
-                tbody.innerHTML = "";
-
-                if(data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="color:red">Không có dữ liệu cho đợt này.</td></tr>';
-                    updateSummary();
-                    return;
-                }
-
-                data.forEach((item, index) => {
-                    const isConfirmed = (item.demandOrderNo !== null && item.demandOrderNo !== "");
-                    let tr = document.createElement("tr");
-                    tr.id = `row_${index}`;
-                    if (isConfirmed) tr.style.backgroundColor = '#d4edda';
-
-                    tr.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td style="font-weight:bold; color:#004d99">${item.pickNote}</td>
-                        <td>${item.invoiceNo}</td>
-                        <td style="font-weight:bold">${item.qty}</td>
-                        <td>
-                            <input type="number" id="recv_qty_${index}" value="${item.receiveQty ?? item.qty}" 
-                                   class="recv-input ${isConfirmed && item.receiveQty != item.qty ? 'error' : ''}"
-                                   ${isConfirmed ? 'disabled' : ''} oninput="checkDiscrepancy(${index}, ${item.qty})">
-                        </td>
-                        <td>
-                            <input type="text" id="note_${index}" class="note-input" value="${item.note ?? ''}"
-                                   style="display: ${(item.receiveQty ?? item.qty) != item.qty ? 'inline-block' : 'none'}" ${isConfirmed ? 'disabled' : ''}>
-                        </td>
-                        <td>
-                            <input type="text" id="do_input_${index}" class="do-input" value="${item.demandOrderNo ?? ''}" ${isConfirmed ? 'disabled' : ''} placeholder="Nhập DO">
-                        </td>
-                        <td>
-                            <div style="display:flex; gap:5px; justify-content:center">
-                                <button id="btn_${index}" class="btn-confirm" ${isConfirmed ? 'disabled style="background:#6c757d"' : ''} 
-                                        onclick="confirmRow('${item.pickNote}', ${index}, ${item.qty})">
-                                    ${isConfirmed ? 'Đã XN' : 'Xác nhận'}
-                                </button>
-                                <button id="btn_edit_${index}" class="btn-edit" style="display:${isConfirmed ? 'inline-block' : 'none'}" onclick="enableEdit(${index})">Sửa</button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="color:red">Không có dữ liệu cho đợt này.</td></tr>';
                 updateSummary();
-            } catch (e) { tbody.innerHTML = '<tr><td colspan="8" style="color:red">Lỗi tải dữ liệu phiếu giao!</td></tr>'; }
-        }
+                return;
+            }
+
+            data.forEach((item, index) => {
+                const isConfirmed = (item.demandOrderNo !== null && item.demandOrderNo !== "");
+                let tr = document.createElement("tr");
+                tr.id = `row_${index}`;
+                if (isConfirmed) tr.style.backgroundColor = '#d4edda';
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td style="font-weight:bold; color:#004d99">${item.pickNote}</td>
+                    <td>${item.invoiceNo}</td>
+                    <td style="font-weight:bold">${item.qty}</td>
+                    <td>
+                        <input type="number" id="recv_qty_${index}" value="${item.receiveQty ?? item.qty}" 
+                               class="recv-input ${isConfirmed && item.receiveQty != item.qty ? 'error' : ''}"
+                               ${isConfirmed ? 'disabled' : ''} oninput="checkDiscrepancy(${index}, ${item.qty})">
+                    </td>
+                    <td>
+                        <input type="text" id="note_${index}" class="note-input" value="${item.note ?? ''}"
+                               style="display: ${(item.receiveQty ?? item.qty) != item.qty ? 'inline-block' : 'none'}" ${isConfirmed ? 'disabled' : ''}>
+                    </td>
+                    <td>
+                        <input type="text" id="do_input_${index}" class="do-input" value="${item.demandOrderNo ?? ''}" ${isConfirmed ? 'disabled' : ''} placeholder="Nhập DO">
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:5px; justify-content:center">
+                            <button id="btn_${index}" class="btn-confirm" ${isConfirmed ? 'disabled style="background:#6c757d"' : ''} 
+                                    onclick="confirmRow('${item.pickNote}', ${index}, ${item.qty})">
+                                ${isConfirmed ? 'Đã XN' : 'Xác nhận'}
+                            </button>
+                            <button id="btn_edit_${index}" class="btn-edit" style="display:${isConfirmed ? 'inline-block' : 'none'}" onclick="enableEdit(${index})">Sửa</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            updateSummary();
+        } catch (e) { tbody.innerHTML = '<tr><td colspan="8" style="color:red">Lỗi tải dữ liệu phiếu giao!</td></tr>'; }
+    }
 
         function checkDiscrepancy(index, sysQty) {
             let recv = document.getElementById(`recv_qty_${index}`);
@@ -233,54 +247,50 @@
         }
 
         async function confirmRow(pickNote, rowIndex, sysQty) {
-            let doValue = document.getElementById(`do_input_${rowIndex}`).value.trim();
-            let recvQty = parseInt(document.getElementById(`recv_qty_${rowIndex}`).value) || 0;
-            let note = document.getElementById(`note_${rowIndex}`).value.trim();
+        let doValue = document.getElementById(`do_input_${rowIndex}`).value.trim();
+        let recvQty = parseInt(document.getElementById(`recv_qty_${rowIndex}`).value) || 0;
+        let note = document.getElementById(`note_${rowIndex}`).value.trim();
 
-            if (!doValue) { alert("Vui lòng nhập số DO!"); return; }
-            if (recvQty !== sysQty && !note) { alert("Số lượng lệch! Vui lòng nhập lý do vào ô NOTE."); return; }
+        if (!doValue) { alert("Vui lòng nhập số DO!"); return; }
+        if (recvQty !== sysQty && !note) { alert("Số lượng lệch! Vui lòng nhập lý do vào ô NOTE."); return; }
 
-            if (!confirm("Xác nhận lưu dữ liệu này vào hệ thống?")) return;
+        if (!confirm("Xác nhận lưu dữ liệu này vào hệ thống?")) return;
 
-            let btn = document.getElementById(`btn_${rowIndex}`);
-            btn.disabled = true; 
-            btn.innerText = "⏳...";
+        let btn = document.getElementById(`btn_${rowIndex}`);
+        btn.disabled = true; 
+        btn.innerText = "⏳...";
 
-            try {
-                let res = await fetch(`${API_BASE_URL}/shipment/confirm-shipment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        PickNote: pickNote, 
-                        DONumber: doValue, 
-                        ReceiveQty: recvQty, 
-                        Note: note, 
-                        StoreCode: currentStoreCode 
-                    })
-                });
+        try {
+            let res = await fetch(`${API_BASE_URL}/shipment/confirm-shipment`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // QUAN TRỌNG: Gửi token khi xác nhận
+                },
+                body: JSON.stringify({ 
+                    PickNote: pickNote, 
+                    DONumber: doValue, 
+                    ReceiveQty: recvQty, 
+                    Note: note, 
+                    StoreCode: currentStoreCode 
+                })
+            });
 
-                if (res.ok) {
-                    document.getElementById(`row_${rowIndex}`).style.backgroundColor = '#d4edda';
-                    btn.innerText = "Đã XN"; 
-                    btn.style.background = "#6c757d";
-                    
-                    document.getElementById(`do_input_${rowIndex}`).disabled = true;
-                    document.getElementById(`recv_qty_${rowIndex}`).disabled = true;
-                    document.getElementById(`note_${rowIndex}`).disabled = true;
-                    document.getElementById(`btn_edit_${rowIndex}`).style.display = "inline-block";
-                    
-                    updateSummary(); // Cập nhật con số tổng ngay lập tức
-                } else { 
-                    alert("Không thể lưu dữ liệu. Vui lòng kiểm tra lại API."); 
-                    btn.innerText = "Xác nhận"; 
-                    btn.disabled = false; 
-                }
-            } catch (e) { 
-                alert("Lỗi kết nối Server!"); 
-                btn.disabled = false; 
-                btn.innerText = "Xác nhận";
+            if (res.ok) {
+                // ... (xử lý thành công)
+                document.getElementById(`row_${rowIndex}`).style.backgroundColor = '#d4edda';
+                btn.innerText = "Đã XN"; btn.style.background = "#6c757d";
+                document.getElementById(`do_input_${rowIndex}`).disabled = true;
+                document.getElementById(`recv_qty_${rowIndex}`).disabled = true;
+                document.getElementById(`note_${rowIndex}`).disabled = true;
+                document.getElementById(`btn_edit_${rowIndex}`).style.display = "inline-block";
+                updateSummary();
+            } else {
+                alert("Lỗi xác thực hoặc quyền hạn!");
+                btn.innerText = "Xác nhận"; btn.disabled = false;
             }
-        }
+        } catch (e) { alert("Lỗi kết nối Server!"); btn.disabled = false; }
+    }
 
         function updateSummary() {
             let rows = document.querySelectorAll("#tableBody tr[id^='row_']");
