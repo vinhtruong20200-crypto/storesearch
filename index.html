@@ -116,40 +116,30 @@ if (!deviceId) {
                                          })
                 });
 
-                if (response.ok) {
+                // ... bên trong hàm handleLogin, sau khi fetch API ...
+
+if (response.ok) {
     const data = await response.json();
+
+    // TẠO OBJECT CẤU HÌNH (Gom tất cả thông tin vào một chỗ)
+    const sessionConfig = {
+        storeCode: data.storeCode || data.StoreCode || "VN001",
+        displayName: data.fullName || data.fullname || data.username || "Nhân viên",
+        // Bạn có thể thêm các cấu hình hiển thị tại đây
+        format: { 
+            decimal: ",", 
+            thousand: "." 
+        },
+        lastLogin: new Date().toLocaleString('vi-VN')
+    };
+
+    // LƯU VÀO STORAGE (Phải dùng JSON.stringify vì Storage chỉ lưu được Chuỗi)
+    localStorage.setItem('inv_session', JSON.stringify(sessionConfig));
     
-    // 1. Lưu Token và Name
-   // 1. Lưu Token
-localStorage.setItem('userToken', data.token);
+    // Token thường được lưu riêng để dễ gửi kèm Header API
+    localStorage.setItem('inv_token', data.token || data.Token);
 
-// 2. Lưu Name (Ưu tiên fullName, nếu không có thì lấy username)
-// Chú ý: username viết thường chữ n theo đúng Backend
-                    
-// 2. Lưu UserName (Tên tài khoản - ví dụ: vinhtp)
-    localStorage.setItem('userName', data.username || data.userName || "");
-// Display name 
-                    const displayName = data.fullName || data.fullname || data.username || "Nhân viên";
-    localStorage.setItem('fullName', displayName);
-
-// 3. Lưu StoreCode (Backend trả về StoreCode - chữ S và C hoa)
-if (data.StoreCode) {
-    localStorage.setItem('storeCode', data.StoreCode);
-}
-
-    // 2. LẤY STORE CODE (Kiểm tra cả 2 trường hợp hoa/thường từ API)
-    // Dùng toán tử || để lấy cái nào có dữ liệu
-    let sCode = data.storeCode || data.StoreCode; 
-
-    if (sCode) {
-        // QUAN TRỌNG: Lưu nhất quán 1 tên duy nhất (nên dùng viết thường cho dễ)
-        localStorage.setItem('storeCode', sCode); 
-        console.log("Đã lưu StoreCode:", sCode);
-    } else {
-        // Nếu điện thoại vẫn không lấy được, hiện alert để debug ngay tại chỗ
-        alert("Cảnh báo: API không trả về StoreCode cho thiết bị này!");
-    }
-
+    // Chuyển hướng sang trang chính
     window.location.href = 'dashboard.html';
 }
                 else {
